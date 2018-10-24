@@ -5,6 +5,8 @@ import io.vertx.core.*
 import io.vertx.kotlin.core.DeploymentOptions
 import mu.KLogging
 
+
+
 /**
  * This is a "Main" verticle. It is used to deploy all other verticles.
  */
@@ -14,14 +16,13 @@ class Main : AbstractVerticle() {
 
     override fun start(startFuture: Future<Void>) {
 
-        logger.debug( "hello world" )
         logger.info( "configuration: ${config()}")
 
         /**
          * Stage1 would be things that initialize resources, or perhaps verify resources are available
          * for a fail-fast start
          */
-        val stage1 = emptyList<Verticle>()
+        val stage1 = listOf( VersionVerticle() )
 
         /**
          * Stage2 are the verticles that are business logice etc...
@@ -80,3 +81,4 @@ class Main : AbstractVerticle() {
         }
     }
 }
+
