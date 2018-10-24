@@ -58,6 +58,14 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+def getDate() {
+    return new Date().format('yyyyMMddHHmmss')
+}
+
+processResources {
+    expand(version: version, buildDate: getDate() )
+}
+
 jar {
     manifest {
 
