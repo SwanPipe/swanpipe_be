@@ -35,11 +35,11 @@ class Main : AbstractVerticle() {
 
         CompositeFuture.all(
                 stage1.map{ deployVerticle( it ) }
-        ).compose { future ->
+        ).compose { _ ->
             CompositeFuture.all(
                     stage2.map{ deployVerticle( it ) }
             )
-        }.compose { future2 ->
+        }.compose { _ ->
             CompositeFuture.all(
                     stage3.map{ deployVerticle( it ) }
             )
