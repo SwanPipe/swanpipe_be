@@ -1,5 +1,5 @@
 // Copyright (C) 2018 Andrew Newton
-package com.swanpipe.verticles
+package com.swanpipe.futures
 
 import io.vertx.core.Future
 import io.vertx.core.Vertx

@@ -1,6 +1,8 @@
 // Copyright (C) 2018 Andrew Newton
 package com.swanpipe.verticles
 
+import com.swanpipe.futures.PgInitVerify
+import com.swanpipe.futures.Version
 import io.vertx.core.*
 import io.vertx.kotlin.core.DeploymentOptions
 import mu.KLogging
@@ -22,7 +24,10 @@ class Main : AbstractVerticle() {
          * Stage1 would be things that initialize resources, or perhaps verify resources are available
          * for a fail-fast start
          */
-        val stage1 = listOf( Version().logVersion( vertx ) )
+        val stage1 = listOf(
+                Version().logVersion( vertx ),
+                PgInitVerify().execute( vertx, config() )
+        )
 
         /**
          * Stage2 are the verticles that are business logice etc...
