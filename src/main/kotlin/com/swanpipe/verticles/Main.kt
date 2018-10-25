@@ -22,7 +22,7 @@ class Main : AbstractVerticle() {
          * Stage1 would be things that initialize resources, or perhaps verify resources are available
          * for a fail-fast start
          */
-        val stage1 = listOf( VersionVerticle() )
+        val stage1 = listOf( Version().logVersion( vertx ) )
 
         /**
          * Stage2 are the verticles that are business logice etc...
@@ -35,7 +35,7 @@ class Main : AbstractVerticle() {
         val stage3 = emptyList<Verticle>()
 
         CompositeFuture.all(
-                stage1.map{ deployVerticle( it ) }
+                stage1
         ).compose { _ ->
             CompositeFuture.all(
                     stage2.map{ deployVerticle( it ) }
