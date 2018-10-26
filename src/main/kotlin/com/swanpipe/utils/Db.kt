@@ -1,6 +1,7 @@
 //Copyright (C) 2018 Andrew Newton
 package com.swanpipe.utils
 
+import io.reactiverse.pgclient.PgPool
 import io.vertx.core.json.JsonObject
 
 const val DB_CONFIG_NAME = "db"
@@ -10,11 +11,13 @@ object Db {
 
     var config: JsonObject? = null
 
-    var dbConfig : JsonObject? = null
+    lateinit var dbConfig : JsonObject
+
+    lateinit var pgPool : PgPool
 
     fun schema() : String? {
         if( isConfigured() ) {
-            return dbConfig!!.getString( SCHEMA_CONFIG_NAME )
+            return dbConfig.getString( SCHEMA_CONFIG_NAME )
         }
         return null
     }
@@ -28,10 +31,8 @@ object Db {
 
     fun isConfigured() : Boolean {
         return config?.let { _ ->
-            if( dbConfig == null ) {
-                dbConfig = config!!.getJsonObject( DB_CONFIG_NAME )
-            }
-            dbConfig?.let { true } ?: false
+             dbConfig = config!!.getJsonObject( DB_CONFIG_NAME )
+            true
         } ?: false
     }
 }

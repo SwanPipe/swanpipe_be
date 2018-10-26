@@ -10,6 +10,7 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import mu.KLogging
+import java.time.LocalDateTime
 
 class PgInitVerify {
 
@@ -28,16 +29,31 @@ class PgInitVerify {
                 val client = PgClient.pool(vertx, options)
 
                 // A simple query
-                val sql = "select version from ${table("flyway_schema_history")} where version = '${dbConfig!!.getString( "flywayVersion" )}'"
+                val flywayVerstion = dbConfig.getString( "flywayVersion" )
+                val sql = "select version, installed_on from ${table("flyway_schema_history")} order by version desc"
                 client.query( sql ) { ar ->
                     if (ar.succeeded()) {
                         val result = ar.result()
                         logger.trace("Got ${result.size()} rows ")
-                        if( result.size() == 0 ) {
+                        var versionMatch = false
+                        lateinit var latestVersion : String
+                        lateinit var installedOn : LocalDateTime
+                        result.forEachIndexed { index, row ->
+                            if( index == 0 ) {
+                                latestVersion = row.getString( 0 )
+                                installedOn = row.getLocalDateTime( 1 )
+                            }
+                            if( row.getString(0).equals( flywayVerstion ) ) {
+                                versionMatch = true
+                            }
+                        }
+                        if( !versionMatch ) {
                             logger.error( "flyway version does not match")
                             future.fail( "flyway version does not match" )
                         }
                         else {
+                            logger.info( "Database flyway version ${flywayVerstion} confirmed.")
+                            logger.info( "Database is at version ${latestVersion} install on ${installedOn}")
                             future.complete()
                         }
                     } else {
@@ -45,8 +61,7 @@ class PgInitVerify {
                         future.fail( ar.cause() )
                     }
 
-                    // Now close the pool
-                    client.close()
+                    Db.pgPool = client
                 }
 
             }

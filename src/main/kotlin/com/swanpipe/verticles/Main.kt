@@ -3,6 +3,7 @@ package com.swanpipe.verticles
 
 import com.swanpipe.futures.PgInitVerify
 import com.swanpipe.futures.Version
+import com.swanpipe.utils.Db
 import io.vertx.core.*
 import io.vertx.kotlin.core.DeploymentOptions
 import mu.KLogging
@@ -59,6 +60,12 @@ class Main : AbstractVerticle() {
             }
         }
 
+    }
+
+    override fun stop(stopFuture: Future<Void>?) {
+        logger.info( "Stopping ${this.javaClass.name}")
+        Db.pgPool.close()
+        super.stop(stopFuture)
     }
 
     /**
