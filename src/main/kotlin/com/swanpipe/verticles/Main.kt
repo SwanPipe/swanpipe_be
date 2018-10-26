@@ -79,7 +79,7 @@ class Main : AbstractVerticle() {
      */
     fun handleVerticleDeployment(result: AsyncResult<String>) {
         if( result.succeeded() ) {
-            logger.debug{ "Deployment of ${result.result()} succeeded" }
+            logger.trace{ "Deployment of ${result.result()} succeeded" }
         }
         else {
             logger.error( "Deployment of ${result.result()} failed", result.cause() )

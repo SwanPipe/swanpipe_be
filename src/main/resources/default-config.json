@@ -12,7 +12,7 @@
     "password" : "password",
     "maxSize" : 5,
     "schema" : "public",
-    "flywayVersion" : "1"
+    "flywayVersion" : "201810250844"
   }
 
 }
