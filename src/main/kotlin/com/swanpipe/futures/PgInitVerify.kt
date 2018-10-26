@@ -22,7 +22,7 @@ class PgInitVerify {
             Db.config = config
             if( Db.isConfigured() ) {
 
-                val options = PgPoolOptions( config )
+                val options = PgPoolOptions( dbConfig )
 
                 // Create the client pool
                 val client = PgClient.pool(vertx, options)
@@ -34,13 +34,14 @@ class PgInitVerify {
                         val result = ar.result()
                         logger.trace("Got ${result.size()} rows ")
                         if( result.size() == 0 ) {
-                            future.fail( "database does not seem to be setup" )
+                            logger.error( "flyway version does not match")
+                            future.fail( "flyway version does not match" )
                         }
                         else {
                             future.complete()
                         }
                     } else {
-                        logger.error("Failure: ${ar.cause().message}")
+                        logger.error("Flyway inspection failure: sql=${sql} message=${ar.cause().message}")
                         future.fail( ar.cause() )
                     }
 
@@ -49,9 +50,10 @@ class PgInitVerify {
                 }
 
             }
-
-            logger.error { "database not configured: dbConfig = ${dbConfig}" }
-            future.fail( "database does not appear to be configured" )
+            else {
+                logger.error { "database not configured: dbConfig = ${dbConfig}" }
+                future.fail( "database does not appear to be configured" )
+            }
 
         }
 

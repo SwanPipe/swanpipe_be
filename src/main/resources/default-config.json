@@ -1,0 +1,18 @@
+{
+  // NOTE: normal JSON does not allow comments
+  // however, Vertx uses a Jackson feature that allows
+  // these single line comments
+
+  // database settings
+  "db" : {
+    "port" : 5432,
+    "host" : "localhost",
+    "database" : "postgres",
+    "user" : "postgres",
+    "password" : "password",
+    "maxSize" : 5,
+    "schema" : "public",
+    "flywayVersion" : "1"
+  }
+
+}

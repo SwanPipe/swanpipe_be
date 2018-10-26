@@ -16,19 +16,8 @@ description ="""
 SwanPipe Backend:${project.name}"""
 
 apply plugin: 'kotlin'
-apply plugin: 'application'
 
 sourceCompatibility = 1.8
-
-/**
- * This is used by the gradle run task to start Vertx.
- * This points to the Vertx Launcher.
- */
-mainClassName = "$vertx_launcher"
-
-run {
-    args "run", "$sp_main_verticle", "-conf" , "src/test/resources/config.json"
-}
 
 repositories {
     mavenCentral()
@@ -43,7 +32,7 @@ dependencies {
     compile "io.vertx:vertx-core:$vertx_version"
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
     compile "io.vertx:vertx-rx-java2:$vertx_version"
-    compile "io.reactiverse:reactive-pg-client:0.10.1"
+    compile "io.reactiverse:reactive-pg-client:0.10.6"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
     testCompile "io.vertx:vertx-junit5:$vertx_version"
     testCompile "org.assertj:assertj-core:3.8.0"
@@ -58,7 +47,7 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-def getDate() {
+static def getDate() {
     return new Date().format('yyyyMMddHHmmss')
 }
 
@@ -67,19 +56,6 @@ processResources {
 }
 
 jar {
-    manifest {
-
-        /**
-         * Use the built-in Vertx Launcher to start vertx, this points to the main class.
-         */
-        attributes 'Main-Class': "$vertx_launcher"
-
-        /**
-         * This points the Vertx Launcher at our Main verticle.
-         */
-        attributes 'Main-Verticle': "$sp_main_verticle"
-    }
-
     /**
      *  Create a fat jar
      */
