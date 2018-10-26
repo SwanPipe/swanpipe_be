@@ -1,11 +1,14 @@
 // Copyright (C) 2018 Andrew Newton
 package com.swanpipe.futures
 
+import com.swanpipe.utils.Version
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import mu.KLogging
+import java.time.OffsetDateTime
+import java.time.format.DateTimeParseException
 
-class Version {
+class VersionInit {
 
     companion object : KLogging()
 
@@ -21,11 +24,19 @@ class Version {
                         future.fail( result.cause() )
                     }
                     else {
-                        logger.info( "Starting version=${version} buildDate=${buildDate}")
-                        future.complete()
+                        Version.version = version
+                        try {
+                            Version.buildDate = OffsetDateTime.parse( buildDate )
+                            logger.info( "Starting version=${Version.version} buildDate=${Version.buildDate}")
+                            future.complete()
+                        }
+                        catch ( e: DateTimeParseException) {
+                            logger.error( e.message )
+                            future.fail( e )
+                        }
                     }
                 } else {
-                    logger.error( "unable to start VersionVerticle" )
+                    logger.error( "unable to read version file" )
                     future.fail( result.cause() )
                 }
             }

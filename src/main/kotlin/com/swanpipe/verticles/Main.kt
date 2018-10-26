@@ -2,7 +2,7 @@
 package com.swanpipe.verticles
 
 import com.swanpipe.futures.PgInitVerify
-import com.swanpipe.futures.Version
+import com.swanpipe.futures.VersionInit
 import com.swanpipe.utils.Db
 import io.vertx.core.*
 import io.vertx.kotlin.core.DeploymentOptions
@@ -26,7 +26,7 @@ class Main : AbstractVerticle() {
          * for a fail-fast start
          */
         val stage1 = listOf(
-                Version().logVersion( vertx ),
+                VersionInit().logVersion( vertx ),
                 PgInitVerify().execute( vertx, config() )
         )
 
