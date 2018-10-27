@@ -33,8 +33,10 @@ class Main : AbstractVerticle() {
         }.concatWith {
             dbInit( it, vertx, config() )
         }.concatWith {
+            deployVerticle( it, Admin() )
+        }.concatWith {
             deployVerticle( it, Http() )
-        } .subscribe(
+        }.subscribe(
                 {
                     logger.info( "SwanPipe startup sequence complete" )
                     startFuture.complete()

@@ -4,11 +4,16 @@ package com.swanpipe.verticles
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Version
 import io.vertx.core.Future
+import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.ext.web.Router
 import mu.KLogging
+
+const val HTTP_CONFIG_NAME = "http"
+const val DEFAULT_PORT = 8080
+const val DEFAULT_HOST = "localhost"
 
 class Http : AbstractVerticle() {
 
@@ -53,11 +58,19 @@ class Http : AbstractVerticle() {
                             .end( "Follows" )
                 }
 
+        val httpConfig : JsonObject? = config().getJsonObject( HTTP_CONFIG_NAME )
+        var port = DEFAULT_PORT
+        var host = DEFAULT_HOST
+        httpConfig?.let {
+            port = httpConfig.getInteger( "port" ) ?: DEFAULT_PORT
+            host = httpConfig.getString( "host" ) ?: DEFAULT_HOST
+        }
+
         server.requestHandler { router.accept(it) }
-                .rxListen(8080)
+                .rxListen( port, host )
                 .subscribe(
                         {
-                            logger.info { "Listening on port 8080" }
+                            logger.info { "Listening on port ${port} and host ${host}" }
                             startFuture.complete()
                         },
                         {
