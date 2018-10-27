@@ -19,9 +19,9 @@ class Http : AbstractVerticle() {
         val server = vertx.createHttpServer()
         val router = Router.router( vertx )
 
-        router.get("/info")
+        router.get("/api/v1/instance")
                 .handler { rc ->
-                    rc.response().putHeader("content-type", "application/json")
+                    rc.response().putHeader("Content-Type", "application/json")
                             .end(
                                     json {
                                         obj(
@@ -33,6 +33,24 @@ class Http : AbstractVerticle() {
                                         )
                                     }.encodePrettily()
                             )
+                }
+
+        router.routeWithRegex( "/@[^/]*" )
+                .handler { rc ->
+                    rc.response().putHeader( "Content-Type", "text/plain" )
+                            .end( "Hello World" )
+                }
+
+        router.routeWithRegex( "/@.*/" )
+                .handler { rc ->
+                    rc.response().putHeader( "Content-Type", "text/plain" )
+                            .end( "Hello World 2" )
+                }
+
+        router.routeWithRegex( "/@.*/follows" )
+                .handler { rc ->
+                    rc.response().putHeader( "Content-Type", "text/plain" )
+                            .end( "Follows" )
                 }
 
         server.requestHandler { router.accept(it) }
