@@ -35,15 +35,28 @@ repositories {
 }
 
 dependencies {
+    
+    // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    
+    // Logging
     compile "io.github.microutils:kotlin-logging:1.5.4"
     compile "org.slf4j:slf4j-jdk14:1.7.25"
+    
+    // Vertx
     compile "io.vertx:vertx-core:$vertx_version"
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
     compile "io.vertx:vertx-rx-java2:$vertx_version"
+    compile "io.vertx:vertx-web:$vertx_version"
+    
+    // Reactive PG Client
     compile "io.reactiverse:reactive-pg-client:0.10.6"
+    
+    // Jackson Kotlin module
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+    
+    // SwanPipe
     compile "com.swanpipe:swanpipe_flyway:0.0.1-SNAPSHOT"
     compile "com.swanpipe:swanpipe_jooq:0.0.1-SNAPSHOT"
     

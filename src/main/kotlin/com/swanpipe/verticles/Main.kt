@@ -33,7 +33,7 @@ class Main : AbstractVerticle() {
         }.concatWith {
             dbInit( it, vertx, config() )
         }.concatWith {
-            dbVersions( it )
+            deployVerticle( it, Http() )
         } .subscribe(
                 {
                     logger.info( "SwanPipe startup sequence complete" )
@@ -56,23 +56,24 @@ class Main : AbstractVerticle() {
      *
      * @return the future
      */
-    fun deployVerticle( verticle: Verticle ) : Future<String> {
+    fun deployVerticle( observer: CompletableObserver, verticle: Verticle ) {
         val future = Future.future<String>()
         val options = DeploymentOptions().setConfig( config() )
-        future.setHandler { handleVerticleDeployment( it ) }
+        future.setHandler { handleVerticleDeployment( observer, it ) }
         vertx.deployVerticle( verticle, options, future.completer() )
-        return future
     }
 
     /**
      * Does something with the deployment of the verticle.
      */
-    fun handleVerticleDeployment(result: AsyncResult<String>) {
+    fun handleVerticleDeployment( observer: CompletableObserver, result: AsyncResult<String>) {
         if( result.succeeded() ) {
             logger.trace{ "Deployment of ${result.result()} succeeded" }
+            observer.onComplete()
         }
         else {
             logger.error( "Deployment of ${result.result()} failed", result.cause() )
+            observer.onError( result.cause() )
         }
     }
 
@@ -146,19 +147,6 @@ class Main : AbstractVerticle() {
         } else {
             logger.error { "database not configured: dbConfig = ${dbConfig}" }
             observer.onError(RuntimeException("database does not appear to be configured"))
-        }
-    }
-
-    fun dbVersions(observer: CompletableObserver) {
-        Db.pgPool.query("select version, installed_on from ${table("flyway_schema_history")}") { ar ->
-            if (ar.succeeded()) {
-                ar.result().forEach { row ->
-                    logger.info("version = ${row.getString(0)} installed on = ${row.getLocalDateTime(1)}")
-                }
-                observer.onComplete()
-            } else {
-                observer.onError(ar.cause())
-            }
         }
     }
 }
