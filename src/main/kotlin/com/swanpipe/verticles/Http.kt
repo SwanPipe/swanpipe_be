@@ -5,6 +5,7 @@ import com.swanpipe.utils.Db
 import com.swanpipe.utils.Version
 import io.vertx.core.Future
 import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.http.HttpServerOptions
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.AbstractVerticle
@@ -21,7 +22,9 @@ class Http : AbstractVerticle() {
 
     override fun start(startFuture: Future<Void>) {
 
-        val server = vertx.createHttpServer()
+        val serverOptions = HttpServerOptions()
+        serverOptions.logActivity = true
+        val server = vertx.createHttpServer( serverOptions )
         val router = Router.router( vertx )
 
         router.get("/api/v1/instance")

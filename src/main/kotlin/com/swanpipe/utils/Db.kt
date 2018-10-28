@@ -38,8 +38,13 @@ object Db {
 
     fun isConfigured() : Boolean {
         return config?.let { _ ->
-             dbConfig = config!!.getJsonObject( DB_CONFIG_NAME )
-            true
+            if( config!!.getJsonObject( DB_CONFIG_NAME ) != null ) {
+                dbConfig = config!!.getJsonObject( DB_CONFIG_NAME )
+                true
+            }
+            else {
+                false
+            }
         } ?: false
     }
 }

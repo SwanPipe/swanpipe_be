@@ -33,7 +33,7 @@ class Main : AbstractVerticle() {
         }.concatWith {
             dbInit( it, vertx, config() )
         }.concatWith {
-            deployVerticle( it, Admin() )
+            deployVerticle( it, Ssh() )
         }.concatWith {
             deployVerticle( it, Http() )
         }.subscribe(

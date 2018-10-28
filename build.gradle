@@ -49,6 +49,8 @@ dependencies {
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
     compile "io.vertx:vertx-rx-java2:$vertx_version"
     compile "io.vertx:vertx-web:$vertx_version"
+    compile "io.vertx:vertx-shell:$vertx_version"
+    compile "io.vertx:vertx-auth-shiro:$vertx_version"
     
     // Reactive PG Client
     compile "io.reactiverse:reactive-pg-client:0.10.6"
@@ -78,10 +80,21 @@ static def getDate() {
 }
 
 processResources {
-    expand(version: version, buildDate: getDate() )
+    filesMatching('version.json') {
+        expand(version: version, buildDate: getDate() )
+    }
 }
 
 jar {
+    manifest {
+
+        /**
+         * Points to our CLI
+         */
+        attributes 'Main-Class': "com.swanpipe.CliKt"
+
+    }
+    
     /**
      *  Create a fat jar
      */
