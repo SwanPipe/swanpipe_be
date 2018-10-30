@@ -2,6 +2,9 @@ package com.swanpipe
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
+import io.reactiverse.reactivex.pgclient.PgClient
+import io.reactiverse.reactivex.pgclient.PgRowSet
+import io.reactivex.Single
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Vertx
@@ -11,9 +14,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of A Veritcle Deployment" )
+@DisplayName( "Test of non verticle db stuff" )
 @ExtendWith( VertxExtension::class )
-object VertxTest {
+object NonVertiicleTestTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll
@@ -38,36 +41,27 @@ object VertxTest {
         testContext.completeNow()
     }
 
-    @DisplayName( "Test simple verticle deployment" )
+    @DisplayName( "Test simple db access" )
     @Test
-    fun testVerticle(vertx : Vertx, testContext: VertxTestContext) {
+    fun testNonVerticle(vertx : Vertx, testContext: VertxTestContext) {
 
-        vertx.deployVerticle( TestVerticle(),
-                testContext.succeeding{
+        InitPg.pool( vertx )
+        createSingle().subscribe(
+                { t ->
+                    assertThat( t ).isEqualTo( 1 )
                     testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
                 }
         )
+    }
 
+    fun createSingle() : Single<Int> {
+        return PgClient( Db.pgPool ).rxQuery( "select version, installed_on from ${table("flyway_schema_history")} order by version desc" )
+                .map { t: PgRowSet ->
+                    t.rowCount()
+                }
     }
 }
 
-class TestVerticle : AbstractVerticle() {
-
-    override fun start(startFuture: Future<Void>) {
-        val sql = "select version, installed_on from ${table("flyway_schema_history")} order by version desc"
-        InitPg.pool( vertx ).query( sql ) { ar ->
-            if( ar.succeeded() ) {
-                assertThat( ar.result().size() ).isGreaterThan( 0 )
-                startFuture.complete()
-            }
-            else {
-                assert( false )
-                startFuture.fail( ar.cause() )
-            }
-        }
-    }
-
-    override fun stop(stopFuture: Future<Void>) {
-        stopFuture.complete()
-    }
-}
