@@ -3,7 +3,6 @@ import java.time.OffsetDateTime
 buildscript {
     ext {
         kotlin_version = '1.2.71'
-        vertx_jooq_version = '4.0.0'
         postgresql_version = '42.2.2'
     }
 
