@@ -60,7 +60,6 @@ dependencies {
     
     // SwanPipe
     compile "com.swanpipe:swanpipe_flyway:0.0.1-SNAPSHOT"
-    compile "com.swanpipe:swanpipe_jooq:0.0.1-SNAPSHOT"
     
     testCompile "io.vertx:vertx-junit5:$vertx_version"
     testCompile "org.assertj:assertj-core:3.8.0"
