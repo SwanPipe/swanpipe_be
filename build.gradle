@@ -60,10 +60,13 @@ dependencies {
     // SwanPipe
     compile "com.swanpipe:swanpipe_flyway:0.0.1-SNAPSHOT"
     
+    // https://mvnrepository.com/artifact/com.opentable.components/otj-pg-embedded
+    testCompile group: 'com.opentable.components', name: 'otj-pg-embedded', version: '0.12.4'
+    
     testCompile "io.vertx:vertx-junit5:$vertx_version"
     testCompile "org.assertj:assertj-core:3.8.0"
     // the jupiter-engine version needs to be kept in line with the vertx-junit5 dependency on junit
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.3"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.2.0"
 }
 
 compileKotlin {
