@@ -62,6 +62,8 @@ dependencies {
     
     // https://mvnrepository.com/artifact/com.opentable.components/otj-pg-embedded
     testCompile group: 'com.opentable.components', name: 'otj-pg-embedded', version: '0.12.4'
+
+    testCompile "org.flywaydb:flyway-core:5.2.1"
     
     testCompile "io.vertx:vertx-junit5:$vertx_version"
     testCompile "org.assertj:assertj-core:3.8.0"
