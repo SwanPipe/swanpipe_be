@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  pgtest:
+    ports:
+    - "5432:5432"
+    image: postgres:10
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+      POSTGRES_INITDB_ARGS: --data-checksums
+      PGDATA: /var/lib/postgresql/data/pgdata
+  flyway:
+    image: boxfuse/flyway:5.2.1
+    command: -url=jdbc:postgresql://pgtest:5432/postgres -schemas=public -user=postgres -password=password -connectRetries=60 clean migrate
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql
+    depends_on:
+      - pgtest
