@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2018. Andrew Newton
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,13 +13,10 @@
  * limitations under the License.
  */
 
-package com.swanpipe
+package com.swanpipe.actions
 
+import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
-import com.swanpipe.utils.Db.table
-import io.reactiverse.reactivex.pgclient.PgClient
-import io.reactiverse.reactivex.pgclient.PgRowSet
-import io.reactivex.Single
 import io.vertx.core.Vertx
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
@@ -28,9 +24,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of non verticle db stuff" )
+@DisplayName( "Test of persona actions" )
 @ExtendWith( VertxExtension::class )
-object NonVertiicleTest {
+object PersonaTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll
@@ -55,27 +51,20 @@ object NonVertiicleTest {
         testContext.completeNow()
     }
 
-    @DisplayName( "Test simple db access" )
+    @DisplayName( "Test create persona" )
     @Test
-    fun testNonVerticle(vertx : Vertx, testContext: VertxTestContext) {
+    fun testCreatePersona(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createSingle().subscribe(
+        createPersona( "fugly", "the fugly monster ").subscribe(
                 { t ->
-                    assertThat( t ).isEqualTo( 1 )
+                    assertThat( t ).isEqualTo( "fugly" )
                     testContext.completeNow()
                 },
                 {
                     testContext.failNow( it )
                 }
         )
-    }
-
-    fun createSingle() : Single<Int> {
-        return PgClient( Db.pgPool ).rxQuery( "select version, installed_on from ${table("flyway_schema_history")} order by version desc" )
-                .map { t: PgRowSet ->
-                    t.rowCount()
-                }
     }
 }
 
