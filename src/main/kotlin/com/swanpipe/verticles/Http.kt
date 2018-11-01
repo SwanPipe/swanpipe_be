@@ -85,9 +85,7 @@ class Http : AbstractVerticle() {
                 .subscribe(
                         {
                             logger.info {
-                                """Listening on port ${serverOptions.port}
-                                    | and host ${serverOptions.host}
-                                    | with activity logging set to ${serverOptions.logActivity}""".trimMargin() }
+                                "Listening on port ${serverOptions.port} and host ${serverOptions.host} with activity logging set to ${serverOptions.logActivity}" }
                             startFuture.complete()
                         },
                         {

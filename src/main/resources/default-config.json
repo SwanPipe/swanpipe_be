@@ -16,6 +16,11 @@
   },
   "http" : {
     "port" : 8080,
+    "host" : "localhost",
+    "logActivity": true
+  },
+  "ssh" : {
+    "port" : 5000,
     "host" : "localhost"
   }
 

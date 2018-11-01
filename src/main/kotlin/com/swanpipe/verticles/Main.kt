@@ -46,8 +46,12 @@ class Main : AbstractVerticle() {
             logVersion( it, vertx )
         }.concatWith {
             dbInit( it, vertx, config() )
-        }.concatWith {
-            deployVerticle( it, Ssh() )
+        }.concatWith { co ->
+            config().getJsonObject( SSH_CONFIG_NAME )?.let {
+                deployVerticle( co, Ssh() )
+            } ?: kotlin.run {
+                co.onComplete()
+            }
         }.concatWith {
             deployVerticle( it, Http() )
         }.subscribe(

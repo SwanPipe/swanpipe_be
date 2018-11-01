@@ -33,6 +33,8 @@ import io.vertx.kotlin.ext.shell.ShellServiceOptions
 import io.vertx.core.cli.CLI
 import mu.KLogging
 
+const val SSH_CONFIG_NAME = "ssh"
+
 class Ssh : AbstractVerticle() {
 
     companion object : KLogging()
@@ -80,10 +82,13 @@ class Ssh : AbstractVerticle() {
             )
         }.build(vertx)
 
+        val host = config().getJsonObject( SSH_CONFIG_NAME ).getString( "host", "localhost" )
+        var port = config().getJsonObject( SSH_CONFIG_NAME ).getInteger( "port", 5000 )
+
         val sshConfig = json {
             obj("sshOptions" to obj(
-                    "host" to "localhost",
-                    "port" to 5000,
+                    "host" to host,
+                    "port" to port,
                     "keyPairOptions" to obj(
                             "path" to "src/main/resources/ssh.jks",
                             "password" to "secret"
@@ -103,6 +108,9 @@ class Ssh : AbstractVerticle() {
         service.start { ar ->
             if (!ar.succeeded()) {
                 ar.cause().printStackTrace()
+            }
+            else {
+                logger.info { "SSH admin service started on ${host}:${port}" }
             }
         }
     }
