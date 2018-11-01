@@ -37,7 +37,12 @@ class Http : AbstractVerticle() {
     override fun start(startFuture: Future<Void>) {
 
         val serverOptions = HttpServerOptions()
-        serverOptions.logActivity = true
+        val httpConfig : JsonObject? = config().getJsonObject( HTTP_CONFIG_NAME )
+        httpConfig?.let{
+            serverOptions.logActivity = httpConfig.getBoolean( "logActivity", false )
+            serverOptions.port = httpConfig.getInteger( "port", DEFAULT_PORT )
+            serverOptions.host = httpConfig.getString( "host", DEFAULT_HOST )
+        }
         val server = vertx.createHttpServer( serverOptions )
         val router = Router.router( vertx )
 
@@ -75,19 +80,14 @@ class Http : AbstractVerticle() {
                             .end( "Follows" )
                 }
 
-        val httpConfig : JsonObject? = config().getJsonObject( HTTP_CONFIG_NAME )
-        var port = DEFAULT_PORT
-        var host = DEFAULT_HOST
-        httpConfig?.let {
-            port = httpConfig.getInteger( "port" ) ?: DEFAULT_PORT
-            host = httpConfig.getString( "host" ) ?: DEFAULT_HOST
-        }
-
         server.requestHandler { router.accept(it) }
-                .rxListen( port, host )
+                .rxListen()
                 .subscribe(
                         {
-                            logger.info { "Listening on port ${port} and host ${host}" }
+                            logger.info {
+                                """Listening on port ${serverOptions.port}
+                                    | and host ${serverOptions.host}
+                                    | with activity logging set to ${serverOptions.logActivity}""".trimMargin() }
                             startFuture.complete()
                         },
                         {
