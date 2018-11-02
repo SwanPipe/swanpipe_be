@@ -17,6 +17,7 @@ package com.swanpipe.actions
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
+import com.swanpipe.utils.genRsa2048
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
@@ -24,10 +25,13 @@ import io.reactivex.Maybe
 import io.reactivex.Single
 
 fun createActor( name : String, displayName : String ) : Single<String> {
+    val keypair = genRsa2048()
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
-                    "insert into ${table("actor")} ( name, display_name ) values ($1,$2) returning name",
-                    Tuple.of( name, displayName ))
+                    """insert into ${table("actor")}
+                        | ( name, display_name, public_key_pem, private_key )
+                        | values ($1,$2,$3,$4) returning name""".trimMargin(),
+                    Tuple.of( name, displayName, keypair.first, keypair.second ))
             .map { pgRowSet ->
                 pgRowSet.iterator().next().getString( "name" )
             }

@@ -34,7 +34,9 @@ create table login (
 create table actor (
   name text not null primary key,                       -- the fediverse handle, such as @foo
   display_name text,                                    -- the display name
-  created timestamptz not null default now()            -- when the persona was created
+  created timestamptz not null default now(),           -- when the persona was created
+  public_key_pem text not null,                         -- actors public key in PEM format
+  private_key bytea not null                            -- actors private key in binary
 );
 
 /*

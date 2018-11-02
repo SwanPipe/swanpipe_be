@@ -68,6 +68,7 @@ object ActorTest {
                                 assertThat(row?.getString("name")).isEqualTo("fugly")
                                 assertThat(row?.getString("display_name")).isEqualTo("the fugly monster")
                                 assertThat(row?.getValue("created")).isNotNull()
+                                assertThat(row?.getString( "public_key_pem" )).isNotBlank()
                             }
                             testContext.completeNow()
                         },
