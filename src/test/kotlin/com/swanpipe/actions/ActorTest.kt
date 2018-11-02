@@ -54,7 +54,7 @@ object ActorTest {
 
     @DisplayName( "Test create persona" )
     @Test
-    fun testCreatePersona(vertx : Vertx, testContext: VertxTestContext) {
+    fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
         createActor( "fugly", "the fugly monster" )
@@ -79,7 +79,7 @@ object ActorTest {
 
     @DisplayName( "Test non existent persona" )
     @Test
-    fun testNonExistentPersona( vertx: Vertx, testContext: VertxTestContext ) {
+    fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
         getActor( "nobody" )
                 .subscribe(
