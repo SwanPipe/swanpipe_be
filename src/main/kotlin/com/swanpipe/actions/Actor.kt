@@ -50,16 +50,17 @@ fun mapRowToActor( row : Row ) : Actor {
     )
 }
 
-fun createActor( name : String, displayName : String ) : Single<String> {
+fun createActor( name : String, displayName : String ) : Single<Actor> {
     val keypair = genRsa2048()
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("actor")}
                         | ( name, display_name, public_key_pem, private_key )
-                        | values ($1,$2,$3,$4) returning name""".trimMargin(),
+                        | values ($1,$2,$3,$4) returning
+                        | name, display_name, created, public_key_pem, private_key""".trimMargin(),
                     Tuple.of( name, displayName, keypair.first, keypair.second ))
             .map { pgRowSet ->
-                pgRowSet.iterator().next().getString( "name" )
+                mapRowToActor( pgRowSet.iterator().next() )
             }
 }
 

@@ -58,9 +58,10 @@ object ActorTest {
 
         InitPg.pool( vertx )
         createActor( "fugly", "the fugly monster" )
-                .flatMap {
-                    assertThat( it ).isEqualTo( "fugly" )
-                    getActor( it ).toSingle()
+                .flatMap { actor ->
+                    val name = actor.json.getString( "name" )
+                    assertThat( name ).isEqualTo( "fugly" )
+                    getActor( name ).toSingle()
                 }
                 .subscribe(
                         { actor ->
