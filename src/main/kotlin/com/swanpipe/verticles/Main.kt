@@ -52,6 +52,7 @@ class Main : AbstractVerticle() {
             } ?: kotlin.run {
                 co.onComplete()
             }
+            // TODO add separate web admin
         }.concatWith {
             deployVerticle( it, Http() )
         }.subscribe(

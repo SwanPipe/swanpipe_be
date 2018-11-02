@@ -46,6 +46,8 @@ class Http : AbstractVerticle() {
         val server = vertx.createHttpServer( serverOptions )
         val router = Router.router( vertx )
 
+        // TODO add web admin shell
+
         router.get("/api/v1/instance")
                 .handler { rc ->
                     rc.response().putHeader("Content-Type", "application/json")

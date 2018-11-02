@@ -51,6 +51,7 @@ fun mapRowToLogin( row : Row ) : Login {
 }
 
 fun createLogin( id : String, password : String ) : Single<Login> {
+    // TODO add real password stuff
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("login")}

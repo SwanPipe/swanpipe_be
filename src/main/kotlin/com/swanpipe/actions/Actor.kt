@@ -34,6 +34,7 @@ data class Actor(
         val json: JsonObject,
         val created : OffsetDateTime,
         val privateKey : Buffer
+        // TODO add a type to the actor
         )
 
 fun mapRowToActor( row : Row ) : Actor {

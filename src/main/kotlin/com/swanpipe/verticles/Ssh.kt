@@ -41,6 +41,7 @@ class Ssh : AbstractVerticle() {
 
     override fun start() {
 
+        // TODO move comamnds into their own package
         var createFullAccountCli = CLI.create( "create-full-account" )
                 .setSummary( "Create a full account including login and persona." )
                 .addArgument( Argument( "persona-id" ))
@@ -114,6 +115,9 @@ class Ssh : AbstractVerticle() {
             }
         }
     }
+
+
+    // TODO clean up this mess
 
     fun createAccount() : Single<Int> {
         return PgClient( Db.pgPool ).rxPreparedQuery( "insert into ${table("account")} ( id ) values (default) returning id")
