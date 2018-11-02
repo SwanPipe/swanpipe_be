@@ -24,7 +24,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import java.lang.RuntimeException
 
 @DisplayName( "Test of persona actions" )
 @ExtendWith( VertxExtension::class )
