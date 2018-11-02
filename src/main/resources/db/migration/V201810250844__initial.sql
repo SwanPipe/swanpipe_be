@@ -42,7 +42,7 @@ create table actor (
 /*
  This table ties logins and actors together.
  */
-create table login_persona_link (
+create table login_actor_link (
   login_id text not null references login( id ),
   actor_name text not null references actor( name ),
   owner boolean not null default true,               -- determines that the login id has actor ownership privledges
