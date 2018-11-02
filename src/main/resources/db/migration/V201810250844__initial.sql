@@ -28,22 +28,21 @@ create table login (
 );
 
 /*
- A persona is the public name and address.
- Each persona must be unique system wide. Nearly everything
- else hangs off of a persona.
+ An actor is the public name and address.
+ Each actor must be unique system wide.
  */
-create table persona (
-  id text not null primary key,                         -- the fediverse handle, such as @foo
+create table actor (
+  name text not null primary key,                       -- the fediverse handle, such as @foo
   display_name text,                                    -- the display name
   created timestamptz not null default now()            -- when the persona was created
 );
 
 /*
- This table ties logins and personas together.
+ This table ties logins and actors together.
  */
 create table login_persona_link (
   login_id text not null references login( id ),
-  persona_id text not null references persona( id ),
-  owner boolean not null default true,               -- determines that the login id has persona ownership privledges
-  primary key( login_id, persona_id )
+  actor_name text not null references actor( name ),
+  owner boolean not null default true,               -- determines that the login id has actor ownership privledges
+  primary key( login_id, actor_name )
 );

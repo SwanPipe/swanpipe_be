@@ -23,22 +23,22 @@ import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
 import io.reactivex.Single
 
-fun createPersona( id : String, displayName : String ) : Single<String> {
+fun createActor( name : String, displayName : String ) : Single<String> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
-                    "insert into ${table("persona")} ( id, display_name ) values ($1,$2) returning id",
-                    Tuple.of( id, displayName ))
+                    "insert into ${table("actor")} ( name, display_name ) values ($1,$2) returning name",
+                    Tuple.of( name, displayName ))
             .map { pgRowSet ->
-                pgRowSet.iterator().next().getString( "id" )
+                pgRowSet.iterator().next().getString( "name" )
             }
 }
 
 // TODO change this to a Pair, with A being JSON and B the private key byte array
-fun getPersona( id: String ) : Maybe<Row> {
+fun getActor( name: String ) : Maybe<Row> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
-                    "select * from ${table("persona")} where id = $1",
-                    Tuple.of( id ))
+                    "select * from ${table("actor")} where name = $1",
+                    Tuple.of( name ))
             .flatMapMaybe<Row> { pgRowSet ->
                 if( pgRowSet.size() != 0 ) {
                     Maybe.just( pgRowSet.iterator().next() )

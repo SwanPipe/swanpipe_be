@@ -27,7 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @DisplayName( "Test of persona actions" )
 @ExtendWith( VertxExtension::class )
-object PersonaTest {
+object ActorTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll
@@ -57,15 +57,15 @@ object PersonaTest {
     fun testCreatePersona(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createPersona( "fugly", "the fugly monster" )
+        createActor( "fugly", "the fugly monster" )
                 .flatMap {
                     assertThat( it ).isEqualTo( "fugly" )
-                    getPersona( it ).toSingle()
+                    getActor( it ).toSingle()
                 }
                 .subscribe(
                         { row ->
                             testContext.verify {
-                                assertThat(row?.getString("id")).isEqualTo("fugly")
+                                assertThat(row?.getString("name")).isEqualTo("fugly")
                                 assertThat(row?.getString("display_name")).isEqualTo("the fugly monster")
                                 assertThat(row?.getValue("created")).isNotNull()
                             }
@@ -81,7 +81,7 @@ object PersonaTest {
     @Test
     fun testNonExistentPersona( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        getPersona( "nobody" )
+        getActor( "nobody" )
                 .subscribe(
                         { _ ->
                             testContext.verify {
