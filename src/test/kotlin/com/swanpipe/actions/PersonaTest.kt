@@ -21,8 +21,10 @@ import io.vertx.core.Vertx
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import java.lang.RuntimeException
 
 @DisplayName( "Test of persona actions" )
 @ExtendWith( VertxExtension::class )
@@ -56,15 +58,46 @@ object PersonaTest {
     fun testCreatePersona(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createPersona( "fugly", "the fugly monster ").subscribe(
-                { t ->
-                    assertThat( t ).isEqualTo( "fugly" )
-                    testContext.completeNow()
-                },
-                {
-                    testContext.failNow( it )
+        createPersona( "fugly", "the fugly monster" )
+                .flatMap {
+                    assertThat( it ).isEqualTo( "fugly" )
+                    getPersona( it ).toSingle()
                 }
-        )
+                .subscribe(
+                        { row ->
+                            testContext.verify {
+                                assertThat(row?.getString("id")).isEqualTo("fugly")
+                                assertThat(row?.getString("display_name")).isEqualTo("the fugly monster")
+                                assertThat(row?.getValue("created")).isNotNull()
+                            }
+                            testContext.completeNow()
+                        },
+                        {
+                            testContext.failNow(it)
+                        }
+                )
     }
+
+    @DisplayName( "Test non existent persona" )
+    @Test
+    fun testNonExistentPersona( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        getPersona( "nobody" )
+                .subscribe(
+                        { _ ->
+                            testContext.verify {
+                                fail( "got back a result")
+                            }
+                            testContext.completeNow()
+                        },
+                        {
+                            testContext.failNow( it )
+                        },
+                        {
+                            testContext.completeNow()
+                        }
+                )
+    }
+
 }
 

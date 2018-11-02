@@ -18,7 +18,9 @@ package com.swanpipe.actions
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import io.reactiverse.reactivex.pgclient.PgClient
+import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
+import io.reactivex.Maybe
 import io.reactivex.Single
 
 fun createPersona( id : String, displayName : String ) : Single<String> {
@@ -28,5 +30,21 @@ fun createPersona( id : String, displayName : String ) : Single<String> {
                     Tuple.of( id, displayName ))
             .map { pgRowSet ->
                 pgRowSet.iterator().next().getString( "id" )
+            }
+}
+
+// TODO change this to a Pair, with A being JSON and B the private key byte array
+fun getPersona( id: String ) : Maybe<Row> {
+    return PgClient( Db.pgPool )
+            .rxPreparedQuery(
+                    "select * from ${table("persona")} where id = $1",
+                    Tuple.of( id ))
+            .flatMapMaybe<Row> { pgRowSet ->
+                if( pgRowSet.size() != 0 ) {
+                    Maybe.just( pgRowSet.iterator().next() )
+                }
+                else {
+                    Maybe.empty()
+                }
             }
 }
