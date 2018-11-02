@@ -30,55 +30,55 @@ import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import java.time.OffsetDateTime
 
-data class Actor(
-        val json: JsonObject,
+data class Login(
+        val id: String,
+        val password: String,
+        val enabled: Boolean,
         val created : OffsetDateTime,
-        val privateKey : Buffer
+        val lastSuccessfulLogin : OffsetDateTime?,
+        val lastFailedLogin : OffsetDateTime?
         )
 
-fun mapRowToActor( row : Row ) : Actor {
-    return Actor(
-            json = json {
-                obj(
-                        "name" to row.getString("name"),
-                        "displayName" to row.getString( "display_name" ),
-                        "publicKeyPem" to row.getString( "public_key_pem" )
-                )
-            },
+fun mapRowToLogin( row : Row ) : Login {
+    return Login(
+            id = row.getString( "id" ),
+            password = row.getString( "password" ),
+            enabled = row.getBoolean( "enabled" ),
             created = row.delegate.getOffsetDateTime( "created" ),
-            privateKey = row.delegate.getBuffer( "private_key" )
+            lastSuccessfulLogin = row.delegate.getOffsetDateTime( "last_successful_login" ),
+            lastFailedLogin = row.delegate.getOffsetDateTime( "last_failed_login" )
     )
 }
 
-fun createActor( name : String, displayName : String ) : Single<Actor> {
-    val keypair = genRsa2048()
+fun createLogin( id : String, password : String ) : Single<Login> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
-                    """insert into ${table("actor")}
-                        | ( name, display_name, public_key_pem, private_key )
-                        | values ($1,$2,$3,$4) returning
-                        | name, display_name, created, public_key_pem, private_key""".trimMargin(),
-                    Tuple.of( name, displayName, keypair.first, keypair.second ))
+                    """insert into ${table("login")}
+                        | ( id, password )
+                        | values ($1,$2) returning
+                        | id, password, enabled, created, last_successful_login, last_failed_login""".trimMargin(),
+                    Tuple.of( id, password ) )
             .map { pgRowSet ->
-                mapRowToActor( pgRowSet.iterator().next() )
+                mapRowToLogin( pgRowSet.iterator().next() )
             }
 }
 
-fun getActor( name: String ) : Maybe<Actor> {
+fun getLogin( id: String ) : Maybe<Login> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """select
-                        | name,
-                        | display_name,
+                        | id,
+                        | password,
+                        | enabled,
                         | created,
-                        | public_key_pem,
-                        | private_key from ${table("actor")}
-                        |where name = $1""".trimMargin(),
-                    Tuple.of( name ))
-            .flatMapMaybe<Actor> { pgRowSet ->
+                        | last_successful_login,
+                        | last_failed_login from ${table("login")}
+                        |where id = $1""".trimMargin(),
+                    Tuple.of( id ))
+            .flatMapMaybe<Login> { pgRowSet ->
                 if( pgRowSet.size() != 0 ) {
                     val row = pgRowSet.iterator().next()
-                    Maybe.just( mapRowToActor( row ) )
+                    Maybe.just( mapRowToLogin( row ) )
                 }
                 else {
                     Maybe.empty()

@@ -25,9 +25,9 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of actor actions" )
+@DisplayName( "Test of login actions" )
 @ExtendWith( VertxExtension::class )
-object ActorTest {
+object LoginTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll
@@ -52,23 +52,21 @@ object ActorTest {
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create actor" )
+    @DisplayName( "Test create login" )
     @Test
     fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createActor( "fugly", "the fugly monster" )
-                .flatMap { actor ->
-                    val name = actor.json.getString( "name" )
-                    assertThat( name ).isEqualTo( "fugly" )
-                    getActor( name ).toSingle()
+        createLogin( "fizzlebottom", "secret" )
+                .flatMap { login ->
+                    assertThat( login.id ).isEqualTo( "fizzlebottom" )
+                    getLogin( login.id ).toSingle()
                 }
                 .subscribe(
-                        { actor ->
+                        { login ->
                             testContext.verify {
-                                assertThat(actor.json.getString("name")).isEqualTo("fugly")
-                                assertThat(actor.json.getString("displayName")).isEqualTo("the fugly monster")
-                                assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
+                                assertThat(login.id).isEqualTo("fizzlebottom")
+                                assertThat(login.enabled).isEqualTo( true )
                             }
                             testContext.completeNow()
                         },
@@ -78,11 +76,11 @@ object ActorTest {
                 )
     }
 
-    @DisplayName( "Test non existent actor" )
+    @DisplayName( "Test non existent login" )
     @Test
     fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        getActor( "nobody" )
+        getLogin( "nobody" )
                 .subscribe(
                         { _ ->
                             testContext.verify {
