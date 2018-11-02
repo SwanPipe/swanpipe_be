@@ -18,11 +18,37 @@ package com.swanpipe.actions
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import com.swanpipe.utils.genRsa2048
+import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
 import io.reactivex.Single
+import io.vertx.core.buffer.Buffer
+import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.json.json
+import io.vertx.kotlin.core.json.obj
+import java.time.OffsetDateTime
+
+data class Actor(
+        val json: JsonObject,
+        val created : OffsetDateTime,
+        val privateKey : Buffer
+        )
+
+fun mapRowToActor( row : Row ) : Actor {
+    return Actor(
+            json = json {
+                obj(
+                        "name" to row.getString("name"),
+                        "displayName" to row.getString( "display_name" ),
+                        "publicKeyPem" to row.getString( "public_key_pem" )
+                )
+            },
+            created = row.delegate.getOffsetDateTime( "created" ),
+            privateKey = row.delegate.getBuffer( "private_key" )
+    )
+}
 
 fun createActor( name : String, displayName : String ) : Single<String> {
     val keypair = genRsa2048()
@@ -37,15 +63,21 @@ fun createActor( name : String, displayName : String ) : Single<String> {
             }
 }
 
-// TODO change this to a Pair, with A being JSON and B the private key byte array
-fun getActor( name: String ) : Maybe<Row> {
+fun getActor( name: String ) : Maybe<Actor> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
-                    "select * from ${table("actor")} where name = $1",
+                    """select
+                        | name,
+                        | display_name,
+                        | created,
+                        | public_key_pem,
+                        | private_key from actor
+                        |where name = $1""".trimMargin(),
                     Tuple.of( name ))
-            .flatMapMaybe<Row> { pgRowSet ->
+            .flatMapMaybe<Actor> { pgRowSet ->
                 if( pgRowSet.size() != 0 ) {
-                    Maybe.just( pgRowSet.iterator().next() )
+                    val row = pgRowSet.iterator().next()
+                    Maybe.just( mapRowToActor( row ) )
                 }
                 else {
                     Maybe.empty()

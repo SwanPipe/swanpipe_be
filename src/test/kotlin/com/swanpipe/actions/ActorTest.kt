@@ -63,12 +63,11 @@ object ActorTest {
                     getActor( it ).toSingle()
                 }
                 .subscribe(
-                        { row ->
+                        { actor ->
                             testContext.verify {
-                                assertThat(row?.getString("name")).isEqualTo("fugly")
-                                assertThat(row?.getString("display_name")).isEqualTo("the fugly monster")
-                                assertThat(row?.getValue("created")).isNotNull()
-                                assertThat(row?.getString( "public_key_pem" )).isNotBlank()
+                                assertThat(actor.json.getString("name")).isEqualTo("fugly")
+                                assertThat(actor.json.getString("displayName")).isEqualTo("the fugly monster")
+                                assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
                             }
                             testContext.completeNow()
                         },
