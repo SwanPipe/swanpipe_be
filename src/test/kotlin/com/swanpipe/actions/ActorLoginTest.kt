@@ -62,7 +62,13 @@ object ActorLoginTest {
                     createActor( "fizzy", "the fizzy" )
                 }
                 .flatMap { _ ->
-                    linkActorLogin( "fizzlebottom", "fizzy")
+                    linkActorLogin( "fizzlebottom", "fizzy", false )
+                }
+                .flatMap { link ->
+                    testContext.verify {
+                        assertThat(link.third).isEqualTo( false )
+                    }
+                    linkActorLogin( "fizzlebottom", "fizzy", true )
                 }
                 .subscribe(
                         { triple ->

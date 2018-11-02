@@ -21,16 +21,18 @@ import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Single
 
-fun linkActorLogin( loginId: String, actorName : String ) : Single<Triple<String, String, Boolean>> {
+fun linkActorLogin( loginId: String, actorName : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("login_actor_link")}
-                        | ( login_id, actor_name )
+                        | ( login_id, actor_name, owner )
                         | values
-                        | ( $1, $2 )
+                        | ( $1, $2, $3 )
+                        | on conflict (login_id, actor_name)
+                        | do update set owner = $3
                         | returning login_id, actor_name, owner
                     """.trimMargin(),
-                    Tuple.of( loginId, actorName )
+                    Tuple.of( loginId, actorName, owner )
             )
             .map { pgRowSet ->
                 val row = pgRowSet.iterator().next()
