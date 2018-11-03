@@ -24,6 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mindrot.jbcrypt.BCrypt
 
 @DisplayName( "Test of actor/login actions" )
 @ExtendWith( VertxExtension::class )
@@ -54,7 +55,7 @@ object ActorLoginTest {
 
     @DisplayName( "Test link login/actor" )
     @Test
-    fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
+    fun testLinkActorLogin(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
         createLogin( "fizzlebottom", "secret" )
@@ -81,6 +82,46 @@ object ActorLoginTest {
                         },
                         {
                             testContext.failNow(it)
+                        }
+                )
+    }
+
+    @DisplayName( "Test create login/actor" )
+    @Test
+    fun createActorLogin( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        com.swanpipe.actions.createActorLogin(
+                loginId = "furry",
+                password = "secret",
+                actorName = "fuzzy",
+                displayName = "the fuzzy monster",
+                owner = true
+        )
+                .flatMap {
+                    testContext.verify {
+                        assertThat( it.third ).isTrue()
+                    }
+                    getLogin( "furry" ).toSingle()
+                }
+                .flatMap { login ->
+                    testContext.verify {
+                        assertThat(login.id).isEqualTo("furry")
+                        assertThat(login.enabled).isEqualTo( true )
+                        assertThat(BCrypt.checkpw( "secret", login.password)).isTrue()
+                    }
+                    getActor( "fuzzy" ).toSingle()
+                }
+                .subscribe(
+                        { actor ->
+                            testContext.verify {
+                                assertThat(actor.json.getString("name")).isEqualTo("fuzzy")
+                                assertThat(actor.json.getString("displayName")).isEqualTo("the fuzzy monster")
+                                assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
+                            }
+                            testContext.completeNow()
+                        },
+                        {
+                            testContext.failNow( it )
                         }
                 )
     }

@@ -17,9 +17,11 @@ package com.swanpipe.actions
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
+import com.swanpipe.utils.genRsa2048
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Single
+import org.mindrot.jbcrypt.BCrypt
 
 fun linkActorLogin( loginId: String, actorName : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
     return PgClient( Db.pgPool )
@@ -42,5 +44,41 @@ fun linkActorLogin( loginId: String, actorName : String, owner: Boolean ) : Sing
             }
 }
 
-// TODO add createActorLogin
-
+fun createActorLogin(
+        loginId: String,
+        password : String,
+        actorName: String,
+        displayName : String,
+        owner: Boolean
+) : Single<Triple<String, String, Boolean>> {
+    val keypair = genRsa2048()
+    val hashed = BCrypt.hashpw( password, BCrypt.gensalt())
+    return PgClient(Db.pgPool).rxPreparedQuery(
+            """
+                with login_insert as (
+                insert into ${table("login")}
+                        ( id, password )
+                        values ($1,$2)
+                ),
+                actor_insert as (
+                insert into ${table("actor")}
+                        ( name, display_name, public_key_pem, private_key )
+                        values ( $3, $4, $5, $6 ) returning
+                        name, display_name, created, public_key_pem, private_key
+                )
+                insert into ${table("login_actor_link")}
+                        ( login_id, actor_name, owner )
+                        values
+                        ( $1, $3, $7 )
+                returning login_id, actor_name, owner
+            """.trimIndent(),
+                Tuple.of( loginId, hashed, actorName, displayName, keypair.first, keypair.second )
+                        .addBoolean( owner )
+            )
+            .map { pgRowSet ->
+                val row = pgRowSet.iterator().next()
+                Triple(row.getString("login_id"),
+                        row.getString("actor_name"),
+                        row.getBoolean("owner"))
+            }
+}
