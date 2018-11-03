@@ -81,3 +81,5 @@ fun getLogin( id: String ) : Maybe<Login> {
                 }
             }
 }
+
+// TODO create a doLogin function to check pasword and update last login times in database

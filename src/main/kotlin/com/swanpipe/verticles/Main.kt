@@ -42,6 +42,7 @@ class Main : AbstractVerticle() {
 
         logger.info( "configuration: ${config()}")
 
+        //TODO this seems to not work well with the fat-jar CliKt.main if there is an error -- fix
         Completable.complete().concatWith {
             logVersion( it, vertx )
         }.concatWith {
@@ -54,6 +55,7 @@ class Main : AbstractVerticle() {
             }
             // TODO add separate web admin
         }.concatWith {
+            //TODO see about deploying multiple instance of http for scaling purposes
             deployVerticle( it, Http() )
         }.subscribe(
                 {
