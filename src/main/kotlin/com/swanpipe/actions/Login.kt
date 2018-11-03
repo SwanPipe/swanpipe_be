@@ -15,19 +15,14 @@
 
 package com.swanpipe.actions
 
-import com.lambdaworks.crypto.SCryptUtil
-import com.swanpipe.utils.*
+import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
-import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
 import io.reactivex.Single
-import io.vertx.core.buffer.Buffer
-import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
+import org.mindrot.jbcrypt.BCrypt
 import java.time.OffsetDateTime
 
 data class Login(
@@ -51,7 +46,7 @@ fun mapRowToLogin( row : Row ) : Login {
 }
 
 fun createLogin( id : String, password : String ) : Single<Login> {
-    val hashed = SCryptUtil.scrypt( password, SCRYPT_COST, SCRYPT_BLOCK_SIZE, SCRYPT_PARALLELIZATION )
+    val hashed = BCrypt.hashpw( password, BCrypt.gensalt())
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("login")}

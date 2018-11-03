@@ -73,8 +73,7 @@ dependencies {
     // Jackson Kotlin module
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
 
-    // https://mvnrepository.com/artifact/com.lambdaworks/scrypt
-    compile group: 'com.lambdaworks', name: 'scrypt', version: '1.4.0'
+    compile 'org.mindrot:jbcrypt:0.4'
 
     // https://mvnrepository.com/artifact/com.opentable.components/otj-pg-embedded
     testCompile group: 'com.opentable.components', name: 'otj-pg-embedded', version: '0.12.4'

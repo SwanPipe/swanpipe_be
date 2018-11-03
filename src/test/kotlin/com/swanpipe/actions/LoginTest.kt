@@ -24,6 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mindrot.jbcrypt.BCrypt
 
 @DisplayName( "Test of login actions" )
 @ExtendWith( VertxExtension::class )
@@ -67,7 +68,7 @@ object LoginTest {
                             testContext.verify {
                                 assertThat(login.id).isEqualTo("fizzlebottom")
                                 assertThat(login.enabled).isEqualTo( true )
-                                assertThat(login.password).startsWith( "\$s0")
+                                assertThat(BCrypt.checkpw( "secret", login.password)).isTrue()
                             }
                             testContext.completeNow()
                         },
