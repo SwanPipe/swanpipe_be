@@ -15,9 +15,9 @@
 
 package com.swanpipe.actions
 
-import com.swanpipe.utils.Db
+import com.lambdaworks.crypto.SCryptUtil
+import com.swanpipe.utils.*
 import com.swanpipe.utils.Db.table
-import com.swanpipe.utils.genRsa2048
 import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
@@ -51,14 +51,14 @@ fun mapRowToLogin( row : Row ) : Login {
 }
 
 fun createLogin( id : String, password : String ) : Single<Login> {
-    // TODO add real password stuff
+    val hashed = SCryptUtil.scrypt( password, SCRYPT_COST, SCRYPT_BLOCK_SIZE, SCRYPT_PARALLELIZATION )
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("login")}
                         | ( id, password )
                         | values ($1,$2) returning
                         | id, password, enabled, created, last_successful_login, last_failed_login""".trimMargin(),
-                    Tuple.of( id, password ) )
+                    Tuple.of( id, hashed ) )
             .map { pgRowSet ->
                 mapRowToLogin( pgRowSet.iterator().next() )
             }

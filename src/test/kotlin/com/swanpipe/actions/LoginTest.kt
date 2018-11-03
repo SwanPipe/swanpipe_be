@@ -67,6 +67,7 @@ object LoginTest {
                             testContext.verify {
                                 assertThat(login.id).isEqualTo("fizzlebottom")
                                 assertThat(login.enabled).isEqualTo( true )
+                                assertThat(login.password).startsWith( "\$s0")
                             }
                             testContext.completeNow()
                         },
