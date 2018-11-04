@@ -23,23 +23,23 @@ import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Single
 import org.mindrot.jbcrypt.BCrypt
 
-fun linkActorLogin( loginId: String, actorName : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
+fun linkActorLogin( loginId: String, pun : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("login_actor_link")}
-                        | ( login_id, actor_name, owner )
+                        | ( login_id, pun, owner )
                         | values
                         | ( $1, $2, $3 )
-                        | on conflict (login_id, actor_name)
+                        | on conflict (login_id, pun)
                         | do update set owner = $3
-                        | returning login_id, actor_name, owner
+                        | returning login_id, pun, owner
                     """.trimMargin(),
-                    Tuple.of( loginId, actorName, owner )
+                    Tuple.of( loginId, pun, owner )
             )
             .map { pgRowSet ->
                 val row = pgRowSet.iterator().next()
                 Triple( row.getString( "login_id"),
-                        row.getString( "actor_name" ),
+                        row.getString( "pun" ),
                         row.getBoolean( "owner" ) )
             }
 }
@@ -47,7 +47,7 @@ fun linkActorLogin( loginId: String, actorName : String, owner: Boolean ) : Sing
 fun createActorLogin(
         loginId: String,
         password : String,
-        actorName: String,
+        pun: String,
         owner: Boolean
 ) : Single<Triple<String, String, Boolean>> {
     val keypair = genRsa2048()
@@ -61,23 +61,23 @@ fun createActorLogin(
                 ),
                 actor_insert as (
                 insert into ${table("actor")}
-                        ( name, public_key_pem, private_key )
+                        ( pun, public_key_pem, private_key )
                         values ( $3, $4, $5 ) returning
-                        name, created, public_key_pem, private_key
+                        pun, created, public_key_pem, private_key
                 )
                 insert into ${table("login_actor_link")}
-                        ( login_id, actor_name, owner )
+                        ( login_id, pun, owner )
                         values
                         ( $1, $3, $6 )
-                returning login_id, actor_name, owner
+                returning login_id, pun, owner
             """.trimIndent(),
-                Tuple.of( loginId, hashed, actorName, keypair.first, keypair.second )
+                Tuple.of( loginId, hashed, pun, keypair.first, keypair.second )
                         .addBoolean( owner )
             )
             .map { pgRowSet ->
                 val row = pgRowSet.iterator().next()
                 Triple(row.getString("login_id"),
-                        row.getString("actor_name"),
+                        row.getString("pun"),
                         row.getBoolean("owner"))
             }
 }

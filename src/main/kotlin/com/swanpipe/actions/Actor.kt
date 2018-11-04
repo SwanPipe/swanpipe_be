@@ -42,7 +42,7 @@ fun mapRowToActor( row : Row ) : Actor {
     return Actor(
             json = json {
                 obj(
-                        "name" to row.getString("name"),
+                        "pun" to row.getString("pun"),
                         "publicKeyPem" to row.getString( "public_key_pem" )
                 )
             },
@@ -51,31 +51,31 @@ fun mapRowToActor( row : Row ) : Actor {
     )
 }
 
-fun createActor( name : String ) : Single<Actor> {
+fun createActor( pun : String ) : Single<Actor> {
     val keypair = genRsa2048()
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("actor")}
-                        | ( name, public_key_pem, private_key )
+                        | ( pun, public_key_pem, private_key )
                         | values ($1,$2,$3) returning
-                        | name, created, public_key_pem, private_key""".trimMargin(),
-                    Tuple.of( name, keypair.first, keypair.second ))
+                        | pun, created, public_key_pem, private_key""".trimMargin(),
+                    Tuple.of( pun, keypair.first, keypair.second ))
             .map { pgRowSet ->
                 mapRowToActor( pgRowSet.iterator().next() )
             }
 }
 
-fun getActor( name: String ) : Maybe<Actor> {
+fun getActor( pun: String ) : Maybe<Actor> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """select
-                        | name,
+                        | pun,
                         | created,
                         | public_key_pem,
                         | private_key
                         | from ${table("actor")}
-                        |where name = $1""".trimMargin(),
-                    Tuple.of( name ))
+                        |where pun = $1""".trimMargin(),
+                    Tuple.of( pun ))
             .flatMapMaybe<Actor> { pgRowSet ->
                 if( pgRowSet.size() != 0 ) {
                     val row = pgRowSet.iterator().next()

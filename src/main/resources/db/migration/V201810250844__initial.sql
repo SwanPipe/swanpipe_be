@@ -37,7 +37,7 @@ create table login (
  Each actor must be unique system wide.
  */
 create table actor (
-  name text not null primary key,                       -- the fediverse handle, such as @foo
+  pun text not null primary key,                        -- preferredUserName
   created timestamptz not null default now(),           -- when the persona was created
   public_key_pem text not null,                         -- actors public key in PEM format
   private_Key bytea not null                            -- actors private key in binary
@@ -48,7 +48,7 @@ create table actor (
  */
 create table login_actor_link (
   login_id text not null references login( id ),
-  actor_name text not null references actor( name ),
+  pun text not null references actor( pun ),
   owner boolean not null default true,               -- determines that the login id has actor ownership privledges
-  primary key( login_id, actor_name )
+  primary key( login_id, pun )
 );

@@ -92,7 +92,7 @@ object ActorLoginTest {
         com.swanpipe.actions.createActorLogin(
                 loginId = "furry",
                 password = "secret",
-                actorName = "fuzzy",
+                pun = "fuzzy",
                 owner = true
         )
                 .flatMap {
@@ -112,7 +112,7 @@ object ActorLoginTest {
                 .subscribe(
                         { actor ->
                             testContext.verify {
-                                assertThat(actor.json.getString("name")).isEqualTo("fuzzy")
+                                assertThat(actor.json.getString("pun")).isEqualTo("fuzzy")
                                 assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
                             }
                             testContext.completeNow()
