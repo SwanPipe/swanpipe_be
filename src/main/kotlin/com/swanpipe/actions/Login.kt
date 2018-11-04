@@ -20,6 +20,8 @@ import com.swanpipe.utils.Db.table
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
+import io.reactiverse.reactivex.pgclient.data.Json
+import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
@@ -81,4 +83,41 @@ fun getLogin( id: String ) : Maybe<Login> {
             }
 }
 
-// TODO create a doLogin function to check pasword and update last login times in database
+fun setLoginData( id: String, path : Array<String>, data: String) : Single<String> {
+    return PgClient( Db.pgPool )
+            .rxPreparedQuery(
+                    """
+                        update ${table("login")}
+                        set data = jsonb_set( data, $2, $3::jsonb )
+                        where id = $1
+                        returning id
+                    """.trimIndent(),
+                    Tuple.of( id, path, data )
+            )
+            .flatMap { pgRowSet ->
+                if( pgRowSet.rowCount() != 0 ) {
+                    Single.just( pgRowSet.iterator().next().getString( "id" ) )
+                }
+                else {
+                    Single.error<String>( RuntimeException( "unable to update data on login id ${id}") )
+                }
+            }
+}
+
+/**
+ * Gets a login, checks the password, and records the result.
+ * The result will not have the lastSuccessfulLogin or lastFailedLogin in it.
+ */
+fun checkLogin( id: String, password : String ) : Maybe<Login> {
+    return getLogin( id )
+            .flatMap { login ->
+                val now = OffsetDateTime.now()
+                if (!BCrypt.checkpw(password, login.password)) {
+                    setLoginData(id, arrayOf("lastFailedLogin"), "$now")
+                            .flatMapMaybe { Maybe.empty<Login>() }
+                } else {
+                    setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now")
+                            .flatMapMaybe { Maybe.just(login) }
+                }
+            }
+}

@@ -99,5 +99,60 @@ object LoginTest {
                 )
     }
 
+    @DisplayName( "Check Login test" )
+    @Test
+    fun testCheckLogin( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createLogin( "foo", "secret" )
+                .flatMapMaybe {
+                    checkLogin( "foo", "secret" )
+                }
+                .subscribe(
+                        { login ->
+                            getLogin( login.id )
+                                    .subscribe { fresLogin ->
+                                        testContext.verify {
+                                            assertThat(login.id).isEqualTo("foo")
+                                            assertThat( fresLogin.data.getString( "lastSuccessfulLogin" ) ).isNotBlank()
+                                        }
+                                        testContext.completeNow()
+                                    }
+                        },
+                        {
+                            testContext.failNow( it )
+                        },
+                        {
+                            testContext.failNow( RuntimeException( "good login failed"))
+                        }
+                )
+    }
+
+    @DisplayName( "Check Bad Login test" )
+    @Test
+    fun testCheckBadLogin( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createLogin( "foo", "secret" )
+                .flatMapMaybe {
+                    checkLogin( "foo", "wrongsecret" )
+                }
+                .subscribe(
+                        {
+                            testContext.failNow( RuntimeException( "bad login failed"))
+                        },
+                        {
+                            testContext.failNow( it )
+                        },
+                        {
+                            getLogin( "foo" )
+                                    .subscribe { login ->
+                                        testContext.verify {
+                                            assertThat( login.data.getString( "lastFailedLogin" ) ).isNotBlank()
+                                        }
+                                        testContext.completeNow()
+                                    }
+                        }
+                )
+    }
+
 }
 
