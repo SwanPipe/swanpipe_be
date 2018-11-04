@@ -72,7 +72,8 @@ fun getActor( name: String ) : Maybe<Actor> {
                         | name,
                         | created,
                         | public_key_pem,
-                        | private_key from ${table("actor")}
+                        | private_key
+                        | from ${table("actor")}
                         |where name = $1""".trimMargin(),
                     Tuple.of( name ))
             .flatMapMaybe<Actor> { pgRowSet ->

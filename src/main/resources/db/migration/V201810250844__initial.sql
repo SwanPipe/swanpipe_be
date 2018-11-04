@@ -15,6 +15,13 @@
  */
 
 /*
+ A general note on naming.
+ 1. try to use ActivityPub and other domain specific terms
+ 2. though things like ActivityPub use camelCase, here we separate words by underbar ('_')
+    because otherwise pg requires double quoting, and that is a pain in the butt
+ */
+
+/*
  Logins allow a team of people to act as one persona.
  Each login id must be unique system wide.
  */
@@ -33,7 +40,7 @@ create table actor (
   name text not null primary key,                       -- the fediverse handle, such as @foo
   created timestamptz not null default now(),           -- when the persona was created
   public_key_pem text not null,                         -- actors public key in PEM format
-  private_key bytea not null                            -- actors private key in binary
+  private_Key bytea not null                            -- actors private key in binary
 );
 
 /*
