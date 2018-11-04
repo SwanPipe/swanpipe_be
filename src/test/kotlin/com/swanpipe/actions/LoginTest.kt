@@ -99,6 +99,22 @@ object LoginTest {
                 )
     }
 
+    @DisplayName( "Test setting login data" )
+    @Test
+    fun testSetLoginData( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createLogin( "foo", "secret" )
+                .flatMap { login ->
+                   setLoginData( login.id, arrayOf( "loginCount" ), "4000" )
+                }
+                .subscribe { data ->
+                    testContext.verify {
+                        assertThat( data.getString( "loginCount" ) ).isEqualTo( "4000" )
+                    }
+                    testContext.completeNow()
+                }
+    }
+
     @DisplayName( "Check Login test" )
     @Test
     fun testCheckLogin( vertx: Vertx, testContext: VertxTestContext ) {

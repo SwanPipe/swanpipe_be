@@ -81,24 +81,19 @@ fun getLogin( id: String ) : Maybe<Login> {
             }
 }
 
-fun setLoginData( id: String, path : Array<String>, data: String) : Single<String> {
+fun setLoginData( id: String, path : Array<String>, data: String) : Single<JsonObject> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """
                         update ${table("login")}
                         set data = jsonb_set( data, $2, $3::jsonb )
                         where id = $1
-                        returning id
+                        returning data
                     """.trimIndent(),
                     Tuple.of( id, path, data )
             )
             .flatMap { pgRowSet ->
-                if( pgRowSet.rowCount() != 0 ) {
-                    Single.just( pgRowSet.iterator().next().getString( "id" ) )
-                }
-                else {
-                    Single.error<String>( RuntimeException( "unable to update data on login id ${id}") )
-                }
+                Single.just( pgRowSet.iterator().next().getJson( "data" ).value() as JsonObject )
             }
 }
 
