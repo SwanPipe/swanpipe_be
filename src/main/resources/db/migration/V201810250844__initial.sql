@@ -22,9 +22,7 @@ create table login (
   id text not null primary key,                          -- otherwise known as a login name or user name
   password text not null,
   enabled boolean not null default true,
-  created timestamptz not null default now(),
-  last_successful_login timestamptz,
-  last_failed_login timestamptz
+  created timestamptz not null default now()
 );
 
 /*

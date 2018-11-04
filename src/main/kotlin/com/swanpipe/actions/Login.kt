@@ -29,9 +29,7 @@ data class Login(
         val id: String,
         val password: String,
         val enabled: Boolean,
-        val created : OffsetDateTime,
-        val lastSuccessfulLogin : OffsetDateTime?,
-        val lastFailedLogin : OffsetDateTime?
+        val created : OffsetDateTime
         )
 
 fun mapRowToLogin( row : Row ) : Login {
@@ -39,9 +37,7 @@ fun mapRowToLogin( row : Row ) : Login {
             id = row.getString( "id" ),
             password = row.getString( "password" ),
             enabled = row.getBoolean( "enabled" ),
-            created = row.delegate.getOffsetDateTime( "created" ),
-            lastSuccessfulLogin = row.delegate.getOffsetDateTime( "last_successful_login" ),
-            lastFailedLogin = row.delegate.getOffsetDateTime( "last_failed_login" )
+            created = row.delegate.getOffsetDateTime( "created" )
     )
 }
 
@@ -52,7 +48,7 @@ fun createLogin( id : String, password : String ) : Single<Login> {
                     """insert into ${table("login")}
                         | ( id, password )
                         | values ($1,$2) returning
-                        | id, password, enabled, created, last_successful_login, last_failed_login""".trimMargin(),
+                        | id, password, enabled, created""".trimMargin(),
                     Tuple.of( id, hashed ) )
             .map { pgRowSet ->
                 mapRowToLogin( pgRowSet.iterator().next() )
@@ -66,9 +62,8 @@ fun getLogin( id: String ) : Maybe<Login> {
                         | id,
                         | password,
                         | enabled,
-                        | created,
-                        | last_successful_login,
-                        | last_failed_login from ${table("login")}
+                        | created
+                        | from ${table("login")}
                         |where id = $1""".trimMargin(),
                     Tuple.of( id ))
             .flatMapMaybe<Login> { pgRowSet ->
