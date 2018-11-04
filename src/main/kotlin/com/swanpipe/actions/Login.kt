@@ -22,6 +22,7 @@ import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
 import io.reactivex.Single
+import io.vertx.core.json.JsonObject
 import org.mindrot.jbcrypt.BCrypt
 import java.time.OffsetDateTime
 
@@ -29,7 +30,8 @@ data class Login(
         val id: String,
         val password: String,
         val enabled: Boolean,
-        val created : OffsetDateTime
+        val created : OffsetDateTime,
+        val data : JsonObject
         )
 
 fun mapRowToLogin( row : Row ) : Login {
@@ -37,7 +39,8 @@ fun mapRowToLogin( row : Row ) : Login {
             id = row.getString( "id" ),
             password = row.getString( "password" ),
             enabled = row.getBoolean( "enabled" ),
-            created = row.delegate.getOffsetDateTime( "created" )
+            created = row.delegate.getOffsetDateTime( "created" ),
+            data = row.getJson( "data" ).value() as JsonObject
     )
 }
 
@@ -48,7 +51,7 @@ fun createLogin( id : String, password : String ) : Single<Login> {
                     """insert into ${table("login")}
                         | ( id, password )
                         | values ($1,$2) returning
-                        | id, password, enabled, created""".trimMargin(),
+                        | id, password, enabled, created, data""".trimMargin(),
                     Tuple.of( id, hashed ) )
             .map { pgRowSet ->
                 mapRowToLogin( pgRowSet.iterator().next() )
@@ -62,7 +65,8 @@ fun getLogin( id: String ) : Maybe<Login> {
                         | id,
                         | password,
                         | enabled,
-                        | created
+                        | created,
+                        | data
                         | from ${table("login")}
                         |where id = $1""".trimMargin(),
                     Tuple.of( id ))

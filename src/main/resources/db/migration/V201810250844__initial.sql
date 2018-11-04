@@ -29,7 +29,8 @@ create table login (
   id text not null primary key,                          -- otherwise known as a login name or user name
   password text not null,
   enabled boolean not null default true,
-  created timestamptz not null default now()
+  created timestamptz not null default now(),
+  data jsonb not null default '{}'
 );
 
 /*
