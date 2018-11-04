@@ -82,7 +82,7 @@ fun getActor( pun: String ) : Maybe<Actor> {
             }
 }
 
-fun setActorData( pun: String, path: Array<String>, data: String ) : Single<JsonObject> {
+fun setActorData( pun: String, path: Array<String>, data: Any ) : Single<JsonObject> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """

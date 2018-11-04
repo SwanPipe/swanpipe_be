@@ -17,7 +17,9 @@ package com.swanpipe.actions
 
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
+import io.reactiverse.pgclient.data.Json
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.assertj.core.api.Assertions.assertThat
@@ -105,11 +107,59 @@ object LoginTest {
         InitPg.pool( vertx )
         createLogin( "foo", "secret" )
                 .flatMap { login ->
-                   setLoginData( login.id, arrayOf( "loginCount" ), "4000" )
+                   setLoginData( login.id, arrayOf( "loginType" ), "normal" )
                 }
                 .subscribe { data ->
                     testContext.verify {
-                        assertThat( data.getString( "loginCount" ) ).isEqualTo( "4000" )
+                        assertThat( data.getString( "loginType" ) ).isEqualTo( "normal" )
+                    }
+                    testContext.completeNow()
+                }
+    }
+
+    @DisplayName( "Test setting login data as object" )
+    @Test
+    fun testSetLoginDataObject( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createLogin( "foo", "secret" )
+                .flatMap { login ->
+                    setLoginData( login.id, arrayOf( "loginCount" ), Json.create( JsonObject().put( "bar", "4000" ) ) )
+                }
+                .subscribe { data ->
+                    testContext.verify {
+                        assertThat( data.getJsonObject( "loginCount" ).getString("bar") ).isEqualTo( "4000" )
+                    }
+                    testContext.completeNow()
+                }
+    }
+
+    @DisplayName( "Test setting login data as int" )
+    @Test
+    fun testSetLoginDataInt( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createLogin( "foo", "secret" )
+                .flatMap { login ->
+                    setLoginData( login.id, arrayOf( "loginCount" ), Integer( 4000 ) )
+                }
+                .subscribe { data ->
+                    testContext.verify {
+                        assertThat( data.getInteger( "loginCount" ) ).isEqualTo( 4000 )
+                    }
+                    testContext.completeNow()
+                }
+    }
+
+    @DisplayName( "Test setting login data as boolean" )
+    @Test
+    fun testSetLoginDataBoolean( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createLogin( "foo", "secret" )
+                .flatMap { login ->
+                    setLoginData( login.id, arrayOf( "acceptsFollowers" ), false )
+                }
+                .subscribe { data ->
+                    testContext.verify {
+                        assertThat( data.getBoolean( "acceptsFollowers" ) ).isFalse()
                     }
                     testContext.completeNow()
                 }

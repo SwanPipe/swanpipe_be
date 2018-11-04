@@ -81,7 +81,7 @@ fun getLogin( id: String ) : Maybe<Login> {
             }
 }
 
-fun setLoginData( id: String, path : Array<String>, data: String) : Single<JsonObject> {
+fun setLoginData( id: String, path : Array<String>, data: Any) : Single<JsonObject> {
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """
@@ -106,10 +106,10 @@ fun checkLogin( id: String, password : String ) : Maybe<Login> {
             .flatMap { login ->
                 val now = OffsetDateTime.now()
                 if (!BCrypt.checkpw(password, login.password)) {
-                    setLoginData(id, arrayOf("lastFailedLogin"), "$now")
+                    setLoginData(id, arrayOf("lastFailedLogin"), "$now" )
                             .flatMapMaybe { Maybe.empty<Login>() }
                 } else {
-                    setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now")
+                    setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now" )
                             .flatMapMaybe { Maybe.just(login) }
                 }
             }
