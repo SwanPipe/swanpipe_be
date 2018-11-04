@@ -81,3 +81,19 @@ fun getActor( pun: String ) : Maybe<Actor> {
                 }
             }
 }
+
+fun setActorData( pun: String, path: Array<String>, data: String ) : Single<JsonObject> {
+    return PgClient( Db.pgPool )
+            .rxPreparedQuery(
+                    """
+                        update ${table("actor")}
+                        set data = jsonb_set( data, $2, $3::jsonb )
+                        where pun = $1
+                        returning data
+                    """.trimIndent(),
+                    Tuple.of( pun, path, data )
+            )
+            .flatMap { pgRowSet ->
+                Single.just( pgRowSet.iterator().next().getJson( "data" ).value() as JsonObject )
+            }
+}

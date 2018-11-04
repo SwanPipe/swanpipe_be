@@ -97,5 +97,21 @@ object ActorTest {
                 )
     }
 
+    @DisplayName( "Test set actor data" )
+    @Test
+    fun testSetActorData( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        createActor( "foo" )
+                .flatMap { actor ->
+                   setActorData( actor.pun, arrayOf( "name" ), "a fun user" )
+                }
+                .subscribe { data ->
+                    testContext.verify {
+                        assertThat( data.getString( "name") ).isEqualTo( "a fun user" )
+                    }
+                    testContext.completeNow()
+                }
+    }
+
 }
 
