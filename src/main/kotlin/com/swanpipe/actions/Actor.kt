@@ -43,7 +43,6 @@ fun mapRowToActor( row : Row ) : Actor {
             json = json {
                 obj(
                         "name" to row.getString("name"),
-                        "displayName" to row.getString( "display_name" ),
                         "publicKeyPem" to row.getString( "public_key_pem" )
                 )
             },
@@ -52,15 +51,15 @@ fun mapRowToActor( row : Row ) : Actor {
     )
 }
 
-fun createActor( name : String, displayName : String ) : Single<Actor> {
+fun createActor( name : String ) : Single<Actor> {
     val keypair = genRsa2048()
     return PgClient( Db.pgPool )
             .rxPreparedQuery(
                     """insert into ${table("actor")}
-                        | ( name, display_name, public_key_pem, private_key )
-                        | values ($1,$2,$3,$4) returning
-                        | name, display_name, created, public_key_pem, private_key""".trimMargin(),
-                    Tuple.of( name, displayName, keypair.first, keypair.second ))
+                        | ( name, public_key_pem, private_key )
+                        | values ($1,$2,$3) returning
+                        | name, created, public_key_pem, private_key""".trimMargin(),
+                    Tuple.of( name, keypair.first, keypair.second ))
             .map { pgRowSet ->
                 mapRowToActor( pgRowSet.iterator().next() )
             }
@@ -71,7 +70,6 @@ fun getActor( name: String ) : Maybe<Actor> {
             .rxPreparedQuery(
                     """select
                         | name,
-                        | display_name,
                         | created,
                         | public_key_pem,
                         | private_key from ${table("actor")}

@@ -60,7 +60,7 @@ object ActorLoginTest {
         InitPg.pool( vertx )
         createLogin( "fizzlebottom", "secret" )
                 .flatMap { _ ->
-                    createActor( "fizzy", "the fizzy" )
+                    createActor( "fizzy" )
                 }
                 .flatMap { _ ->
                     linkActorLogin( "fizzlebottom", "fizzy", false )
@@ -94,7 +94,6 @@ object ActorLoginTest {
                 loginId = "furry",
                 password = "secret",
                 actorName = "fuzzy",
-                displayName = "the fuzzy monster",
                 owner = true
         )
                 .flatMap {
@@ -115,7 +114,6 @@ object ActorLoginTest {
                         { actor ->
                             testContext.verify {
                                 assertThat(actor.json.getString("name")).isEqualTo("fuzzy")
-                                assertThat(actor.json.getString("displayName")).isEqualTo("the fuzzy monster")
                                 assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
                             }
                             testContext.completeNow()

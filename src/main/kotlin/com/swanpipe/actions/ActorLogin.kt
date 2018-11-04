@@ -48,7 +48,6 @@ fun createActorLogin(
         loginId: String,
         password : String,
         actorName: String,
-        displayName : String,
         owner: Boolean
 ) : Single<Triple<String, String, Boolean>> {
     val keypair = genRsa2048()
@@ -62,17 +61,17 @@ fun createActorLogin(
                 ),
                 actor_insert as (
                 insert into ${table("actor")}
-                        ( name, display_name, public_key_pem, private_key )
-                        values ( $3, $4, $5, $6 ) returning
-                        name, display_name, created, public_key_pem, private_key
+                        ( name, public_key_pem, private_key )
+                        values ( $3, $4, $5 ) returning
+                        name, created, public_key_pem, private_key
                 )
                 insert into ${table("login_actor_link")}
                         ( login_id, actor_name, owner )
                         values
-                        ( $1, $3, $7 )
+                        ( $1, $3, $6 )
                 returning login_id, actor_name, owner
             """.trimIndent(),
-                Tuple.of( loginId, hashed, actorName, displayName, keypair.first, keypair.second )
+                Tuple.of( loginId, hashed, actorName, keypair.first, keypair.second )
                         .addBoolean( owner )
             )
             .map { pgRowSet ->

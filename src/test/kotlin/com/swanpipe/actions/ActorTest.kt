@@ -57,7 +57,7 @@ object ActorTest {
     fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createActor( "fugly", "the fugly monster" )
+        createActor( "fugly" )
                 .flatMap { actor ->
                     val name = actor.json.getString( "name" )
                     assertThat( name ).isEqualTo( "fugly" )
@@ -67,7 +67,6 @@ object ActorTest {
                         { actor ->
                             testContext.verify {
                                 assertThat(actor.json.getString("name")).isEqualTo("fugly")
-                                assertThat(actor.json.getString("displayName")).isEqualTo("the fugly monster")
                                 assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
                             }
                             testContext.completeNow()
