@@ -35,7 +35,6 @@ data class Actor(
         val created : OffsetDateTime,
         val privateKey : Buffer
         //TODO see about a JSON database object for user data and move display name into it
-        //TODO see about a JSON database object for system data
         )
 
 fun mapRowToActor( row : Row ) : Actor {
