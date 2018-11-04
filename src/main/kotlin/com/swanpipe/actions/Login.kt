@@ -20,8 +20,6 @@ import com.swanpipe.utils.Db.table
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
-import io.reactiverse.reactivex.pgclient.data.Json
-import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject

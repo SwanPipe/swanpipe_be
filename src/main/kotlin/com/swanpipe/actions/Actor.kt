@@ -18,7 +18,6 @@ package com.swanpipe.actions
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import com.swanpipe.utils.genRsa2048
-import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
@@ -26,8 +25,6 @@ import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
 import java.time.OffsetDateTime
 
 data class Actor(
