@@ -62,8 +62,7 @@ fun createActorLogin(
                 actor_insert as (
                 insert into ${table("actor")}
                         ( pun, public_key_pem, private_key )
-                        values ( $3, $4, $5 ) returning
-                        pun, created, public_key_pem, private_key
+                        values ( $3, $4, $5 )
                 )
                 insert into ${table("login_actor_link")}
                         ( login_id, pun, owner )

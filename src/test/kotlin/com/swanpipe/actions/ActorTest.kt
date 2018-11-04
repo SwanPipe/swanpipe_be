@@ -59,15 +59,14 @@ object ActorTest {
         InitPg.pool( vertx )
         createActor( "fugly" )
                 .flatMap { actor ->
-                    val pun = actor.json.getString( "pun" )
-                    assertThat( pun ).isEqualTo( "fugly" )
-                    getActor( pun ).toSingle()
+                    assertThat( actor.pun ).isEqualTo( "fugly" )
+                    getActor( actor.pun ).toSingle()
                 }
                 .subscribe(
                         { actor ->
                             testContext.verify {
-                                assertThat(actor.json.getString("pun")).isEqualTo("fugly")
-                                assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
+                                assertThat(actor.pun).isEqualTo("fugly")
+                                assertThat(actor.publicKeyPem).isNotBlank()
                             }
                             testContext.completeNow()
                         },

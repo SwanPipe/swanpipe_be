@@ -112,8 +112,8 @@ object ActorLoginTest {
                 .subscribe(
                         { actor ->
                             testContext.verify {
-                                assertThat(actor.json.getString("pun")).isEqualTo("fuzzy")
-                                assertThat(actor.json.getString( "publicKeyPem" )).isNotBlank()
+                                assertThat(actor.pun).isEqualTo("fuzzy")
+                                assertThat(actor.publicKeyPem).isNotBlank()
                             }
                             testContext.completeNow()
                         },

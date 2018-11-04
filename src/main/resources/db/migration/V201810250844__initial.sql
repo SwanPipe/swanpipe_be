@@ -41,7 +41,8 @@ create table actor (
   pun text not null primary key,                        -- preferredUserName
   created timestamptz not null default now(),           -- when the persona was created
   public_key_pem text not null,                         -- actors public key in PEM format
-  private_Key bytea not null                            -- actors private key in binary
+  private_Key bytea not null,                           -- actors private key in binary
+  data jsonb not null default '{}'
 );
 
 /*

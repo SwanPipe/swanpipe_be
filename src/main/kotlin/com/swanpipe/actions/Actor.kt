@@ -31,22 +31,20 @@ import io.vertx.kotlin.core.json.obj
 import java.time.OffsetDateTime
 
 data class Actor(
-        val json: JsonObject,
+        val pun: String,
         val created : OffsetDateTime,
-        val privateKey : Buffer
-        //TODO see about a JSON database object for user data and move display name into it
+        val publicKeyPem : String,
+        val privateKey : Buffer,
+        val data : JsonObject
         )
 
 fun mapRowToActor( row : Row ) : Actor {
     return Actor(
-            json = json {
-                obj(
-                        "pun" to row.getString("pun"),
-                        "publicKeyPem" to row.getString( "public_key_pem" )
-                )
-            },
+            pun = row.getString( "pun" ),
             created = row.delegate.getOffsetDateTime( "created" ),
-            privateKey = row.delegate.getBuffer( "private_key" )
+            publicKeyPem = row.getString( "public_key_pem" ),
+            privateKey = row.delegate.getBuffer( "private_key" ),
+            data = row.getJson( "data" ).value() as JsonObject
     )
 }
 
@@ -57,7 +55,7 @@ fun createActor( pun : String ) : Single<Actor> {
                     """insert into ${table("actor")}
                         | ( pun, public_key_pem, private_key )
                         | values ($1,$2,$3) returning
-                        | pun, created, public_key_pem, private_key""".trimMargin(),
+                        | pun, created, public_key_pem, private_key, data""".trimMargin(),
                     Tuple.of( pun, keypair.first, keypair.second ))
             .map { pgRowSet ->
                 mapRowToActor( pgRowSet.iterator().next() )
@@ -71,7 +69,8 @@ fun getActor( pun: String ) : Maybe<Actor> {
                         | pun,
                         | created,
                         | public_key_pem,
-                        | private_key
+                        | private_key,
+                        | data
                         | from ${table("actor")}
                         |where pun = $1""".trimMargin(),
                     Tuple.of( pun ))
