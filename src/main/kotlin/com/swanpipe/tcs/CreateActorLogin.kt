@@ -61,10 +61,10 @@ class CreateActorLogin() {
                             .subscribe(
                                     { triple ->
                                         if( triple.third ) {
-                                            process.write( "Actor of ${triple.second} with login-id ${triple.first} as owner\n")
+                                            process.write( "Created actor of '${triple.second}' with login-id ${triple.first} as owner\n")
                                         }
                                         else {
-                                            process.write( "Actor of ${triple.second} with login-id ${triple.first}\n")
+                                            process.write( "Created actor of '${triple.second}' with login-id ${triple.first}\n")
                                         }
                                         process.end()
                                     },

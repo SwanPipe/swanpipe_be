@@ -90,11 +90,13 @@ object ActorLoginDaoTest {
     @Test
     fun createActorLogin( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
+        val keypair = genRsa2048()
         ActorLoginDao.createActorLogin(
                 loginId = "furry",
                 password = "secret",
                 pun = "fuzzy",
-                owner = true
+                owner = true,
+                keypair = keypair
         )
                 .flatMap {
                     testContext.verify {

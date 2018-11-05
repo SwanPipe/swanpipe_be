@@ -21,6 +21,7 @@ import com.swanpipe.utils.genRsa2048
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Single
+import io.vertx.core.buffer.Buffer
 import org.mindrot.jbcrypt.BCrypt
 
 object ActorLoginDao {
@@ -50,10 +51,9 @@ object ActorLoginDao {
             loginId: String,
             password : String,
             pun: String,
-            owner: Boolean
+            owner: Boolean,
+            keypair: Pair<String, Buffer>
     ) : Single<Triple<String, String, Boolean>> {
-        val keypair = genRsa2048()
-        val hashed = BCrypt.hashpw( password, BCrypt.gensalt())
         return PgClient(Db.pgPool).rxPreparedQuery(
                 """
                 with login_insert as (
@@ -72,7 +72,7 @@ object ActorLoginDao {
                         ( $1, $3, $6 )
                 returning login_id, pun, owner
             """.trimIndent(),
-                Tuple.of( loginId, hashed, pun, keypair.first, keypair.second )
+                Tuple.of( loginId, password, pun, keypair.first, keypair.second )
                         .addBoolean( owner )
         )
                 .map { pgRowSet ->

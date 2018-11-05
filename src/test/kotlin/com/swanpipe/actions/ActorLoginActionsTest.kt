@@ -28,7 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @DisplayName( "Test of actor login actions" )
 @ExtendWith( VertxExtension::class )
-object ActorLoginActionsTestTest {
+object ActorLoginActionsTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll

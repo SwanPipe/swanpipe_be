@@ -19,26 +19,38 @@ package com.swanpipe.actions
 import com.swanpipe.dao.ActorLoginDao
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.json.get
 
 object ActorLoginActions {
 
     val OWNER = "owner"
 
+    fun prepareNewActorLogin( actorLogin: JsonObject ) : JsonObject {
+        actorLogin.getBoolean( OWNER )?: kotlin.run {
+            actorLogin.put( OWNER, true )
+        }
+        actorLogin.getString( ActorActions.PUN ) ?: run {
+            actorLogin.put( ActorActions.PUN, actorLogin.getString( LoginActions.ID ))
+        }
+        return actorLogin
+    }
+
     fun createActorLogin(actorLogin: JsonObject ) : Single<Triple<String,String,Boolean>> {
         return Single.just( actorLogin )
                 .map {
-                    ActorActions.validateNewActor( actorLogin )
-                    LoginActions.validateNewLogin( actorLogin )
-                    ActorActions.prepareNewActor( actorLogin )
-                    LoginActions.prepareNewLogin( actorLogin )
+                    prepareNewActorLogin( it )
+                    ActorActions.validateNewActor( it )
+                    LoginActions.validateNewLogin( it )
+                    LoginActions.prepareNewLogin( it )
+                    ActorActions.prepareNewActor( it )
                 }
                 .flatMap {
-                    val owner = it.getBoolean( OWNER )?: true
                     ActorLoginDao.createActorLogin(
-                            it.getString( LoginActions.ID ),
-                            it.getString( LoginActions.PASSWORD ),
-                            it.getString( ActorActions.PUN ),
-                            owner )
+                            it.first.getString( LoginActions.ID ),
+                            it.first.getString( LoginActions.PASSWORD ),
+                            it.first.getString( ActorActions.PUN ),
+                            it.first.getBoolean( OWNER ),
+                            it.second )
                 }
     }
 
