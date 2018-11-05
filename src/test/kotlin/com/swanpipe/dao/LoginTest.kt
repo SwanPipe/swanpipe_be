@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.actions
+package com.swanpipe.dao
 
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
@@ -28,7 +28,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mindrot.jbcrypt.BCrypt
 
-@DisplayName( "Test of login actions" )
+@DisplayName( "Test of login dao" )
 @ExtendWith( VertxExtension::class )
 object LoginTest {
 
@@ -60,10 +60,10 @@ object LoginTest {
     fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createLogin( "fizzlebottom", "secret" )
+        LoginDao.createLogin( "fizzlebottom", "secret" )
                 .flatMap { login ->
                     assertThat( login.id ).isEqualTo( "fizzlebottom" )
-                    getLogin( login.id ).toSingle()
+                    LoginDao.getLogin( login.id ).toSingle()
                 }
                 .subscribe(
                         { login ->
@@ -84,7 +84,7 @@ object LoginTest {
     @Test
     fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        getLogin( "nobody" )
+        LoginDao.getLogin( "nobody" )
                 .subscribe(
                         { _ ->
                             testContext.verify {
@@ -105,9 +105,9 @@ object LoginTest {
     @Test
     fun testSetLoginData( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createLogin( "foo", "secret" )
+        LoginDao.createLogin( "foo", "secret" )
                 .flatMap { login ->
-                   setLoginData( login.id, arrayOf( "loginType" ), "normal" )
+                   LoginDao.setLoginData( login.id, arrayOf( "loginType" ), "normal" )
                 }
                 .subscribe { data ->
                     testContext.verify {
@@ -121,9 +121,9 @@ object LoginTest {
     @Test
     fun testSetLoginDataObject( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createLogin( "foo", "secret" )
+        LoginDao.createLogin( "foo", "secret" )
                 .flatMap { login ->
-                    setLoginData( login.id, arrayOf( "loginCount" ), Json.create( JsonObject().put( "bar", "4000" ) ) )
+                    LoginDao.setLoginData( login.id, arrayOf( "loginCount" ), Json.create( JsonObject().put( "bar", "4000" ) ) )
                 }
                 .subscribe { data ->
                     testContext.verify {
@@ -137,9 +137,9 @@ object LoginTest {
     @Test
     fun testSetLoginDataInt( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createLogin( "foo", "secret" )
+        LoginDao.createLogin( "foo", "secret" )
                 .flatMap { login ->
-                    setLoginData( login.id, arrayOf( "loginCount" ), Integer( 4000 ) )
+                    LoginDao.setLoginData( login.id, arrayOf( "loginCount" ), Integer( 4000 ) )
                 }
                 .subscribe { data ->
                     testContext.verify {
@@ -153,9 +153,9 @@ object LoginTest {
     @Test
     fun testSetLoginDataBoolean( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createLogin( "foo", "secret" )
+        LoginDao.createLogin( "foo", "secret" )
                 .flatMap { login ->
-                    setLoginData( login.id, arrayOf( "acceptsFollowers" ), false )
+                    LoginDao.setLoginData( login.id, arrayOf( "acceptsFollowers" ), false )
                 }
                 .subscribe { data ->
                     testContext.verify {
@@ -169,13 +169,13 @@ object LoginTest {
     @Test
     fun testCheckLogin( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createLogin( "foo", "secret" )
+        LoginDao.createLogin( "foo", "secret" )
                 .flatMapMaybe {
-                    checkLogin( "foo", "secret" )
+                    LoginDao.checkLogin( "foo", "secret" )
                 }
                 .subscribe(
                         { login ->
-                            getLogin( login.id )
+                            LoginDao.getLogin( login.id )
                                     .subscribe { fresLogin ->
                                         testContext.verify {
                                             assertThat(login.id).isEqualTo("foo")
@@ -197,9 +197,9 @@ object LoginTest {
     @Test
     fun testCheckBadLogin( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createLogin( "foo", "secret" )
+        LoginDao.createLogin( "foo", "secret" )
                 .flatMapMaybe {
-                    checkLogin( "foo", "wrongsecret" )
+                    LoginDao.checkLogin( "foo", "wrongsecret" )
                 }
                 .subscribe(
                         {
@@ -209,7 +209,7 @@ object LoginTest {
                             testContext.failNow( it )
                         },
                         {
-                            getLogin( "foo" )
+                            LoginDao.getLogin( "foo" )
                                     .subscribe { login ->
                                         testContext.verify {
                                             assertThat( login.data.getString( "lastFailedLogin" ) ).isNotBlank()

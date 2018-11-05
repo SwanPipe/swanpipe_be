@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.actions
+package com.swanpipe.dao
 
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mindrot.jbcrypt.BCrypt
 
-@DisplayName( "Test of actor/login actions" )
+@DisplayName( "Test of actor/login dao" )
 @ExtendWith( VertxExtension::class )
 object ActorLoginTest {
 
@@ -57,18 +57,18 @@ object ActorLoginTest {
     fun testLinkActorLogin(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createLogin( "fizzlebottom", "secret" )
+        LoginDao.createLogin( "fizzlebottom", "secret" )
                 .flatMap { _ ->
-                    createActor( "fizzy" )
+                    ActorDao.createActor( "fizzy" )
                 }
                 .flatMap { _ ->
-                    linkActorLogin( "fizzlebottom", "fizzy", false )
+                    ActorLoginDao.linkActorLogin( "fizzlebottom", "fizzy", false )
                 }
                 .flatMap { link ->
                     testContext.verify {
                         assertThat(link.third).isEqualTo( false )
                     }
-                    linkActorLogin( "fizzlebottom", "fizzy", true )
+                    ActorLoginDao.linkActorLogin( "fizzlebottom", "fizzy", true )
                 }
                 .subscribe(
                         { triple ->
@@ -89,7 +89,7 @@ object ActorLoginTest {
     @Test
     fun createActorLogin( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        com.swanpipe.actions.createActorLogin(
+        ActorLoginDao.createActorLogin(
                 loginId = "furry",
                 password = "secret",
                 pun = "fuzzy",
@@ -99,7 +99,7 @@ object ActorLoginTest {
                     testContext.verify {
                         assertThat( it.third ).isTrue()
                     }
-                    getLogin( "furry" ).toSingle()
+                    LoginDao.getLogin( "furry" ).toSingle()
                 }
                 .flatMap { login ->
                     testContext.verify {
@@ -107,7 +107,7 @@ object ActorLoginTest {
                         assertThat(login.enabled).isEqualTo( true )
                         assertThat(BCrypt.checkpw( "secret", login.password)).isTrue()
                     }
-                    getActor( "fuzzy" ).toSingle()
+                    ActorDao.getActor( "fuzzy" ).toSingle()
                 }
                 .subscribe(
                         { actor ->

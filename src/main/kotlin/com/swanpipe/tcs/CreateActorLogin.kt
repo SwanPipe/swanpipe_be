@@ -16,7 +16,7 @@
 
 package com.swanpipe.tcs
 
-import com.swanpipe.actions.createActorLogin
+import com.swanpipe.dao.ActorLoginDao
 import io.vertx.core.Vertx
 import io.vertx.core.cli.CLI
 import io.vertx.ext.shell.command.Command
@@ -47,7 +47,7 @@ class CreateActorLogin() {
                     val password = commandLine.getOptionValue<String>( "password" )
                     val pun = commandLine.getOptionValue<String>( "pun" )?: loginId
                     val owner = commandLine.getOptionValue<Boolean>( "owner" )?: true
-                    createActorLogin( loginId = loginId, password = password, pun = pun, owner = owner )
+                    ActorLoginDao.createActorLogin( loginId = loginId, password = password, pun = pun, owner = owner )
                             .subscribe(
                                     { triple ->
                                         if( triple.third ) {

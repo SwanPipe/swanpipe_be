@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.actions
+package com.swanpipe.dao
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
@@ -33,36 +33,38 @@ data class Actor(
         val publicKeyPem : String,
         val privateKey : Buffer,
         val data : JsonObject
+)
+
+object ActorDao {
+
+    fun mapRowToActor( row : Row ) : Actor {
+        return Actor(
+                pun = row.getString( "pun" ),
+                created = row.delegate.getOffsetDateTime( "created" ),
+                publicKeyPem = row.getString( "public_key_pem" ),
+                privateKey = row.delegate.getBuffer( "private_key" ),
+                data = row.getJson( "data" ).value() as JsonObject
         )
+    }
 
-fun mapRowToActor( row : Row ) : Actor {
-    return Actor(
-            pun = row.getString( "pun" ),
-            created = row.delegate.getOffsetDateTime( "created" ),
-            publicKeyPem = row.getString( "public_key_pem" ),
-            privateKey = row.delegate.getBuffer( "private_key" ),
-            data = row.getJson( "data" ).value() as JsonObject
-    )
-}
-
-fun createActor( pun : String ) : Single<Actor> {
-    val keypair = genRsa2048()
-    return PgClient( Db.pgPool )
-            .rxPreparedQuery(
-                    """insert into ${table("actor")}
+    fun createActor( pun : String ) : Single<Actor> {
+        val keypair = genRsa2048()
+        return PgClient( Db.pgPool )
+                .rxPreparedQuery(
+                        """insert into ${table("actor")}
                         | ( pun, public_key_pem, private_key )
                         | values ($1,$2,$3) returning
                         | pun, created, public_key_pem, private_key, data""".trimMargin(),
-                    Tuple.of( pun, keypair.first, keypair.second ))
-            .map { pgRowSet ->
-                mapRowToActor( pgRowSet.iterator().next() )
-            }
-}
+                        Tuple.of( pun, keypair.first, keypair.second ))
+                .map { pgRowSet ->
+                    mapRowToActor( pgRowSet.iterator().next() )
+                }
+    }
 
-fun getActor( pun: String ) : Maybe<Actor> {
-    return PgClient( Db.pgPool )
-            .rxPreparedQuery(
-                    """select
+    fun getActor( pun: String ) : Maybe<Actor> {
+        return PgClient( Db.pgPool )
+                .rxPreparedQuery(
+                        """select
                         | pun,
                         | created,
                         | public_key_pem,
@@ -70,30 +72,33 @@ fun getActor( pun: String ) : Maybe<Actor> {
                         | data
                         | from ${table("actor")}
                         |where pun = $1""".trimMargin(),
-                    Tuple.of( pun ))
-            .flatMapMaybe<Actor> { pgRowSet ->
-                if( pgRowSet.size() != 0 ) {
-                    val row = pgRowSet.iterator().next()
-                    Maybe.just( mapRowToActor( row ) )
+                        Tuple.of( pun ))
+                .flatMapMaybe<Actor> { pgRowSet ->
+                    if( pgRowSet.size() != 0 ) {
+                        val row = pgRowSet.iterator().next()
+                        Maybe.just( mapRowToActor( row ) )
+                    }
+                    else {
+                        Maybe.empty()
+                    }
                 }
-                else {
-                    Maybe.empty()
-                }
-            }
-}
+    }
 
-fun setActorData( pun: String, path: Array<String>, data: Any ) : Single<JsonObject> {
-    return PgClient( Db.pgPool )
-            .rxPreparedQuery(
-                    """
+    fun setActorData( pun: String, path: Array<String>, data: Any ) : Single<JsonObject> {
+        return PgClient( Db.pgPool )
+                .rxPreparedQuery(
+                        """
                         update ${table("actor")}
                         set data = jsonb_set( data, $2, $3::jsonb )
                         where pun = $1
                         returning data
                     """.trimIndent(),
-                    Tuple.of( pun, path, data )
-            )
-            .flatMap { pgRowSet ->
-                Single.just( pgRowSet.iterator().next().getJson( "data" ).value() as JsonObject )
-            }
+                        Tuple.of( pun, path, data )
+                )
+                .flatMap { pgRowSet ->
+                    Single.just( pgRowSet.iterator().next().getJson( "data" ).value() as JsonObject )
+                }
+    }
+
 }
+

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.actions
+package com.swanpipe.dao
 
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
@@ -25,7 +25,7 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of actor actions" )
+@DisplayName( "Test of actor dao" )
 @ExtendWith( VertxExtension::class )
 object ActorTest {
 
@@ -57,10 +57,10 @@ object ActorTest {
     fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
-        createActor( "fugly" )
+        ActorDao.createActor( "fugly" )
                 .flatMap { actor ->
                     assertThat( actor.pun ).isEqualTo( "fugly" )
-                    getActor( actor.pun ).toSingle()
+                    ActorDao.getActor( actor.pun ).toSingle()
                 }
                 .subscribe(
                         { actor ->
@@ -80,7 +80,7 @@ object ActorTest {
     @Test
     fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        getActor( "nobody" )
+        ActorDao.getActor( "nobody" )
                 .subscribe(
                         { _ ->
                             testContext.verify {
@@ -101,9 +101,9 @@ object ActorTest {
     @Test
     fun testSetActorData( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        createActor( "foo" )
+        ActorDao.createActor( "foo" )
                 .flatMap { actor ->
-                   setActorData( actor.pun, arrayOf( "name" ), "a fun user" )
+                   ActorDao.setActorData( actor.pun, arrayOf( "name" ), "a fun user" )
                 }
                 .subscribe { data ->
                     testContext.verify {

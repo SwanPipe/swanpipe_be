@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.actions
+package com.swanpipe.dao
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
@@ -23,10 +23,12 @@ import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Single
 import org.mindrot.jbcrypt.BCrypt
 
-fun linkActorLogin( loginId: String, pun : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
-    return PgClient( Db.pgPool )
-            .rxPreparedQuery(
-                    """insert into ${table("login_actor_link")}
+object ActorLoginDao {
+
+    fun linkActorLogin( loginId: String, pun : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
+        return PgClient( Db.pgPool )
+                .rxPreparedQuery(
+                        """insert into ${table("login_actor_link")}
                         | ( login_id, pun, owner )
                         | values
                         | ( $1, $2, $3 )
@@ -34,26 +36,26 @@ fun linkActorLogin( loginId: String, pun : String, owner: Boolean ) : Single<Tri
                         | do update set owner = $3
                         | returning login_id, pun, owner
                     """.trimMargin(),
-                    Tuple.of( loginId, pun, owner )
-            )
-            .map { pgRowSet ->
-                val row = pgRowSet.iterator().next()
-                Triple( row.getString( "login_id"),
-                        row.getString( "pun" ),
-                        row.getBoolean( "owner" ) )
-            }
-}
+                        Tuple.of( loginId, pun, owner )
+                )
+                .map { pgRowSet ->
+                    val row = pgRowSet.iterator().next()
+                    Triple( row.getString( "login_id"),
+                            row.getString( "pun" ),
+                            row.getBoolean( "owner" ) )
+                }
+    }
 
-fun createActorLogin(
-        loginId: String,
-        password : String,
-        pun: String,
-        owner: Boolean
-) : Single<Triple<String, String, Boolean>> {
-    val keypair = genRsa2048()
-    val hashed = BCrypt.hashpw( password, BCrypt.gensalt())
-    return PgClient(Db.pgPool).rxPreparedQuery(
-            """
+    fun createActorLogin(
+            loginId: String,
+            password : String,
+            pun: String,
+            owner: Boolean
+    ) : Single<Triple<String, String, Boolean>> {
+        val keypair = genRsa2048()
+        val hashed = BCrypt.hashpw( password, BCrypt.gensalt())
+        return PgClient(Db.pgPool).rxPreparedQuery(
+                """
                 with login_insert as (
                 insert into ${table("login")}
                         ( id, password )
@@ -72,11 +74,14 @@ fun createActorLogin(
             """.trimIndent(),
                 Tuple.of( loginId, hashed, pun, keypair.first, keypair.second )
                         .addBoolean( owner )
-            )
-            .map { pgRowSet ->
-                val row = pgRowSet.iterator().next()
-                Triple(row.getString("login_id"),
-                        row.getString("pun"),
-                        row.getBoolean("owner"))
-            }
+        )
+                .map { pgRowSet ->
+                    val row = pgRowSet.iterator().next()
+                    Triple(row.getString("login_id"),
+                            row.getString("pun"),
+                            row.getBoolean("owner"))
+                }
+    }
+
 }
+
