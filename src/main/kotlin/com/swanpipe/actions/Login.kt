@@ -20,12 +20,16 @@ import com.markodevcic.kvalidation.onError
 import com.markodevcic.kvalidation.rules
 import com.swanpipe.dao.Login
 import com.swanpipe.dao.LoginDao
+import com.swanpipe.dao.LoginDao.getLogin
+import com.swanpipe.dao.LoginDao.setLoginData
 import com.swanpipe.utils.JsonValidator
 import com.swanpipe.utils.ValidationException
+import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
 import org.mindrot.jbcrypt.BCrypt
+import java.time.OffsetDateTime
 
 object LoginActions {
 
@@ -68,4 +72,21 @@ object LoginActions {
                 }
     }
 
+    /**
+     * Gets a login, checks the password, and records the result.
+     * The result will not have the lastSuccessfulLogin or lastFailedLogin in it.
+     */
+    fun checkLogin( id: String, password : String ) : Maybe<Login> {
+        return getLogin( id )
+                .flatMap { login ->
+                    val now = OffsetDateTime.now()
+                    if (!BCrypt.checkpw(password, login.password)) {
+                        setLoginData(id, arrayOf("lastFailedLogin"), "$now" )
+                                .flatMapMaybe { Maybe.empty<Login>() }
+                    } else {
+                        setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now" )
+                                .flatMapMaybe { Maybe.just(login) }
+                    }
+                }
+    }
 }

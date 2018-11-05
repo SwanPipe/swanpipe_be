@@ -23,7 +23,6 @@ import io.vertx.junit5.VertxTestContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mindrot.jbcrypt.BCrypt
 
 @DisplayName( "Test of actor/login dao" )
 @ExtendWith( VertxExtension::class )
@@ -105,7 +104,6 @@ object ActorLoginTest {
                     testContext.verify {
                         assertThat(login.id).isEqualTo("furry")
                         assertThat(login.enabled).isEqualTo( true )
-                        assertThat(BCrypt.checkpw( "secret", login.password)).isTrue()
                     }
                     ActorDao.getActor( "fuzzy" ).toSingle()
                 }

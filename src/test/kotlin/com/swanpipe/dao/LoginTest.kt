@@ -70,7 +70,7 @@ object LoginTest {
                             testContext.verify {
                                 assertThat(login.id).isEqualTo("fizzlebottom")
                                 assertThat(login.enabled).isEqualTo( true )
-                                assertThat(BCrypt.checkpw( "secret", login.password)).isTrue()
+                                assertThat(login.password).isEqualTo("secret")
                             }
                             testContext.completeNow()
                         },
@@ -163,61 +163,6 @@ object LoginTest {
                     }
                     testContext.completeNow()
                 }
-    }
-
-    @DisplayName( "Check Login test" )
-    @Test
-    fun testCheckLogin( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMapMaybe {
-                    LoginDao.checkLogin( "foo", "secret" )
-                }
-                .subscribe(
-                        { login ->
-                            LoginDao.getLogin( login.id )
-                                    .subscribe { fresLogin ->
-                                        testContext.verify {
-                                            assertThat(login.id).isEqualTo("foo")
-                                            assertThat( fresLogin.data.getString( "lastSuccessfulLogin" ) ).isNotBlank()
-                                        }
-                                        testContext.completeNow()
-                                    }
-                        },
-                        {
-                            testContext.failNow( it )
-                        },
-                        {
-                            testContext.failNow( RuntimeException( "good login failed"))
-                        }
-                )
-    }
-
-    @DisplayName( "Check Bad Login test" )
-    @Test
-    fun testCheckBadLogin( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMapMaybe {
-                    LoginDao.checkLogin( "foo", "wrongsecret" )
-                }
-                .subscribe(
-                        {
-                            testContext.failNow( RuntimeException( "bad login failed"))
-                        },
-                        {
-                            testContext.failNow( it )
-                        },
-                        {
-                            LoginDao.getLogin( "foo" )
-                                    .subscribe { login ->
-                                        testContext.verify {
-                                            assertThat( login.data.getString( "lastFailedLogin" ) ).isNotBlank()
-                                        }
-                                        testContext.completeNow()
-                                    }
-                        }
-                )
     }
 
 }

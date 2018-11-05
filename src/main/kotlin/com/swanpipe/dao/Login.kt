@@ -47,14 +47,13 @@ object LoginDao {
     }
 
     fun createLogin( id : String, password : String ) : Single<Login> {
-        val hashed = BCrypt.hashpw( password, BCrypt.gensalt())
         return PgClient( Db.pgPool )
                 .rxPreparedQuery(
                         """insert into ${table("login")}
                         | ( id, password )
                         | values ($1,$2) returning
                         | id, password, enabled, created, data""".trimMargin(),
-                        Tuple.of( id, hashed ) )
+                        Tuple.of( id, password ) )
                 .map { pgRowSet ->
                     mapRowToLogin( pgRowSet.iterator().next() )
                 }
@@ -99,23 +98,6 @@ object LoginDao {
                 }
     }
 
-    /**
-     * Gets a login, checks the password, and records the result.
-     * The result will not have the lastSuccessfulLogin or lastFailedLogin in it.
-     */
-    fun checkLogin( id: String, password : String ) : Maybe<Login> {
-        return getLogin( id )
-                .flatMap { login ->
-                    val now = OffsetDateTime.now()
-                    if (!BCrypt.checkpw(password, login.password)) {
-                        setLoginData(id, arrayOf("lastFailedLogin"), "$now" )
-                                .flatMapMaybe { Maybe.empty<Login>() }
-                    } else {
-                        setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now" )
-                                .flatMapMaybe { Maybe.just(login) }
-                    }
-                }
-    }
 
 }
 
