@@ -22,7 +22,7 @@ import io.vertx.core.json.JsonObject
 
 object ActorLoginActions {
 
-    private val OWNER = "owner"
+    val OWNER = "owner"
 
     fun createActorLogin(actorLogin: JsonObject ) : Single<Triple<String,String,Boolean>> {
         return Single.just( actorLogin )

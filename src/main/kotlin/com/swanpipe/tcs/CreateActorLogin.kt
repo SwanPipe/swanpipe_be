@@ -16,9 +16,14 @@
 
 package com.swanpipe.tcs
 
+import com.swanpipe.actions.ActorActions
+import com.swanpipe.actions.ActorLoginActions
+import com.swanpipe.actions.LoginActions
 import com.swanpipe.dao.ActorLoginDao
+import com.swanpipe.utils.ValidationException
 import io.vertx.core.Vertx
 import io.vertx.core.cli.CLI
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.shell.command.Command
 import io.vertx.ext.shell.command.CommandBuilder
 import io.vertx.kotlin.core.cli.Option
@@ -47,7 +52,12 @@ class CreateActorLogin() {
                     val password = commandLine.getOptionValue<String>( "password" )
                     val pun = commandLine.getOptionValue<String>( "pun" )?: loginId
                     val owner = commandLine.getOptionValue<Boolean>( "owner" )?: true
-                    ActorLoginDao.createActorLogin( loginId = loginId, password = password, pun = pun, owner = owner )
+                    val json = JsonObject()
+                            .put( LoginActions.ID, loginId )
+                            .put( LoginActions.PASSWORD, password )
+                            .put( ActorActions.PUN, pun )
+                            .put( ActorLoginActions.OWNER, owner )
+                    ActorLoginActions.createActorLogin( json )
                             .subscribe(
                                     { triple ->
                                         if( triple.third ) {
@@ -61,6 +71,11 @@ class CreateActorLogin() {
                                     {
                                         logger.error { it }
                                         process.write( "Error create actor with login: ${it.message}\n")
+                                        if( it is ValidationException ) {
+                                            for( m in it.issues ) {
+                                                process.write( "$m\n")
+                                            }
+                                        }
                                         process.end()
                                     }
                             )
