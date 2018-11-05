@@ -28,7 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @DisplayName( "Test of actor dao" )
 @ExtendWith( VertxExtension::class )
-object ActorTest {
+object ActorDaoTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll

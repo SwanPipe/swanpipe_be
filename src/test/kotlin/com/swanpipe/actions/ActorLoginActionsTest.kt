@@ -29,9 +29,9 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mindrot.jbcrypt.BCrypt
 
-@DisplayName( "Test of login dao" )
+@DisplayName( "Test of actor login actions" )
 @ExtendWith( VertxExtension::class )
-object ActorActionsTest {
+object ActorLoginActionsTestTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll
@@ -56,48 +56,26 @@ object ActorActionsTest {
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create actor action" )
+    @DisplayName( "Test create actor login action" )
     @Test
     fun testCreateActor( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
         val json = JsonObject()
-                .put( "pun", "foo" )
-        ActorActions.createActor( json )
+                .put( "id", "foo" )
+                .put( "password", "secret" )
+                .put( "pun", "bar" )
+        ActorLoginActions.createActorLogin( json )
                 .subscribe(
-                        { actor ->
+                        { triple ->
                             testContext.verify {
-                                assertThat(actor.pun).isEqualTo("foo")
-                                assertThat(actor.publicKeyPem).isNotBlank()
+                                assertThat(triple.first).isEqualTo( "foo" )
+                                assertThat(triple.second).isEqualTo( "bar" )
+                                assertThat(triple.third).isTrue()
                             }
                             testContext.completeNow()
                         },
                         {
                             testContext.failNow(it)
-                        }
-                )
-    }
-
-    @DisplayName( "Test create actor action bad pun" )
-    @Test
-    fun testCreateActorBadPun( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        val json = JsonObject()
-                .put( "pun", "bobby@foo.com" )
-        LoginActions.createLogin( json )
-                .subscribe(
-                        {
-                            testContext.failNow( RuntimeException( "test failed" ))
-                        },
-                        {
-                            if( it is ValidationException ) {
-                                testContext.verify {
-                                    assertThat( it.issues.isEmpty() ).isFalse()
-                                }
-                                testContext.completeNow()
-                            }
-                            else {
-                                testContext.failNow( RuntimeException( "test failed" ))
-                            }
                         }
                 )
     }

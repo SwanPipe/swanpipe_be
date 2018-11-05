@@ -33,8 +33,8 @@ import java.time.OffsetDateTime
 
 object LoginActions {
 
-    private val PASSWORD = "password"
-    private val ID = "id"
+    val PASSWORD = "password"
+    val ID = "id"
 
     fun prepareNewLogin(login : JsonObject) : JsonObject {
         val hashed = BCrypt.hashpw( login[PASSWORD], BCrypt.gensalt() )

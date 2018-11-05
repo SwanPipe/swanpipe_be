@@ -31,7 +31,7 @@ import org.mindrot.jbcrypt.BCrypt
 
 @DisplayName( "Test of login dao" )
 @ExtendWith( VertxExtension::class )
-object LoginTest {
+object LoginActionsTest {
 
     @DisplayName( "Prepare the database" )
     @BeforeAll

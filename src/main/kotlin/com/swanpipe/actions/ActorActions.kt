@@ -30,7 +30,7 @@ import java.util.regex.Pattern
 
 object ActorActions {
 
-    private val PUN = "pun"
+    val PUN = "pun"
     private val PUN_REGEX = Pattern.compile( "[^\\s:?#\\[\\]!$@&'()*+,;=]*")
 
     fun prepareNewActor( actor: JsonObject ) : Pair<JsonObject, Pair<String,Buffer>> {
