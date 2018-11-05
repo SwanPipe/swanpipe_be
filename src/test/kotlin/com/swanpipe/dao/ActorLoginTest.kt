@@ -17,6 +17,7 @@ package com.swanpipe.dao
 
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
+import com.swanpipe.utils.genRsa2048
 import io.vertx.core.Vertx
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
@@ -58,7 +59,8 @@ object ActorLoginTest {
         InitPg.pool( vertx )
         LoginDao.createLogin( "fizzlebottom", "secret" )
                 .flatMap { _ ->
-                    ActorDao.createActor( "fizzy" )
+                    val keypair = genRsa2048()
+                    ActorDao.createActor( "fizzy", keypair )
                 }
                 .flatMap { _ ->
                     ActorLoginDao.linkActorLogin( "fizzlebottom", "fizzy", false )

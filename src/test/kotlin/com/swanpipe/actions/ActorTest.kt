@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018. Andrew Newton
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +14,22 @@
  * limitations under the License.
  */
 
-package com.swanpipe.dao
+package com.swanpipe.actions
 
 import com.swanpipe.InitPg
+import com.swanpipe.dao.LoginDao
 import com.swanpipe.utils.Db
-import com.swanpipe.utils.genRsa2048
+import com.swanpipe.utils.ValidationException
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mindrot.jbcrypt.BCrypt
 
-@DisplayName( "Test of actor dao" )
+@DisplayName( "Test of login dao" )
 @ExtendWith( VertxExtension::class )
 object ActorTest {
 
@@ -53,21 +56,17 @@ object ActorTest {
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create actor" )
+    @DisplayName( "Test create actor action" )
     @Test
-    fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
-
+    fun testCreateActor( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        val keypair = genRsa2048()
-        ActorDao.createActor( "fugly", keypair )
-                .flatMap { actor ->
-                    assertThat( actor.pun ).isEqualTo( "fugly" )
-                    ActorDao.getActor( actor.pun ).toSingle()
-                }
+        val json = JsonObject()
+                .put( "pun", "foo" )
+        ActorActions.createActor( json )
                 .subscribe(
                         { actor ->
                             testContext.verify {
-                                assertThat(actor.pun).isEqualTo("fugly")
+                                assertThat(actor.pun).isEqualTo("foo")
                                 assertThat(actor.publicKeyPem).isNotBlank()
                             }
                             testContext.completeNow()
@@ -78,42 +77,29 @@ object ActorTest {
                 )
     }
 
-    @DisplayName( "Test non existent actor" )
+    @DisplayName( "Test create actor action bad pun" )
     @Test
-    fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
+    fun testCreateActorBadPun( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
-        ActorDao.getActor( "nobody" )
+        val json = JsonObject()
+                .put( "pun", "bobby@foo.com" )
+        LoginActions.createLogin( json )
                 .subscribe(
-                        { _ ->
-                            testContext.verify {
-                                fail( "got back a result")
+                        {
+                            testContext.failNow( RuntimeException( "test failed" ))
+                        },
+                        {
+                            if( it is ValidationException ) {
+                                testContext.verify {
+                                    assertThat( it.issues.isEmpty() ).isFalse()
+                                }
+                                testContext.completeNow()
                             }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow( it )
-                        },
-                        {
-                            testContext.completeNow()
+                            else {
+                                testContext.failNow( RuntimeException( "test failed" ))
+                            }
                         }
                 )
-    }
-
-    @DisplayName( "Test set actor data" )
-    @Test
-    fun testSetActorData( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        val keypair = genRsa2048()
-        ActorDao.createActor( "foo", keypair )
-                .flatMap { actor ->
-                   ActorDao.setActorData( actor.pun, arrayOf( "name" ), "a fun user" )
-                }
-                .subscribe { data ->
-                    testContext.verify {
-                        assertThat( data.getString( "name") ).isEqualTo( "a fun user" )
-                    }
-                    testContext.completeNow()
-                }
     }
 
 }

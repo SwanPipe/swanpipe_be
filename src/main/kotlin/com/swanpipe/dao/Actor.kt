@@ -47,8 +47,7 @@ object ActorDao {
         )
     }
 
-    fun createActor( pun : String ) : Single<Actor> {
-        val keypair = genRsa2048()
+    fun createActor( pun : String, keypair : Pair<String,Buffer> ) : Single<Actor> {
         return PgClient( Db.pgPool )
                 .rxPreparedQuery(
                         """insert into ${table("actor")}

@@ -57,7 +57,7 @@ object LoginTest {
 
     @DisplayName( "Test create login" )
     @Test
-    fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
+    fun testCreateLogin(vertx : Vertx, testContext: VertxTestContext) {
 
         InitPg.pool( vertx )
         LoginDao.createLogin( "fizzlebottom", "secret" )
@@ -82,7 +82,7 @@ object LoginTest {
 
     @DisplayName( "Test non existent login" )
     @Test
-    fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
+    fun testNonExistentLogin( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool( vertx )
         LoginDao.getLogin( "nobody" )
                 .subscribe(
