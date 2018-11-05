@@ -17,7 +17,6 @@ package com.swanpipe.dao
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
-import com.swanpipe.utils.genRsa2048
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple

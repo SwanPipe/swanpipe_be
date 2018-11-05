@@ -26,7 +26,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mindrot.jbcrypt.BCrypt
 
 @DisplayName( "Test of login dao" )
 @ExtendWith( VertxExtension::class )

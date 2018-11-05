@@ -23,7 +23,6 @@ import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
-import org.mindrot.jbcrypt.BCrypt
 import java.time.OffsetDateTime
 
 data class Login(
