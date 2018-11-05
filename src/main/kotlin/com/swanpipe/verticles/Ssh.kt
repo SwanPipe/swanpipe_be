@@ -43,7 +43,7 @@ class Ssh : AbstractVerticle() {
     override fun start() {
 
         val host = config().getJsonObject( SSH_CONFIG_NAME ).getString( "host", "localhost" )
-        var port = config().getJsonObject( SSH_CONFIG_NAME ).getInteger( "port", 5000 )
+        val port = config().getJsonObject( SSH_CONFIG_NAME ).getInteger( "port", 5000 )
 
         val sshConfig = json {
             obj("sshOptions" to obj(
