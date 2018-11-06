@@ -17,6 +17,7 @@
 package com.swanpipe.tcs
 
 import com.swanpipe.actions.LoginActions
+import com.swanpipe.dao.LoginDao
 import io.vertx.core.Vertx
 import io.vertx.core.cli.CLI
 import io.vertx.ext.shell.command.Command
@@ -24,35 +25,36 @@ import io.vertx.ext.shell.command.CommandBuilder
 import io.vertx.kotlin.core.cli.Option
 import mu.KLogging
 
-class CheckLogin {
+class EnableLogin {
 
     companion object : KLogging()
 
-    val cli = CLI.create( "check-login" )
-            .setSummary( "Checks that a login is working" )
+    val cli = CLI.create( "enable-login" )
+            .setSummary( "Enables and disables a login" )
             .addOption( Option( argName="Login ID", shortName = "l", longName = "login-id", required = true ) )
-            .addOption( Option( argName="Password", shortName = "p", longName = "password", required = true ) )
+            .addOption( Option( argName="Disable", shortName = "d", longName = "disable", flag = true, required = false ) )
             .addOption( Option( argName = "help", shortName = "h", longName = "help", flag = true, help = true ) )
 
-    fun command( vertx: Vertx ) : Command {
+    fun command( vertx: Vertx) : Command {
         return CommandBuilder.command( cli )
                 .processHandler { process ->
                     val commandLine = process.commandLine()
                     val loginId = commandLine.getOptionValue<String>( "login-id" )
-                    val password = commandLine.getOptionValue<String>( "password" )
-                    LoginActions.checkLogin( loginId, password)
+                    val disable = commandLine.isFlagEnabled( "disable" )
+                    LoginDao.enableLogin( loginId, !disable)
                             .subscribe(
                                     {
-                                        process.write( "Password matches for '${loginId}'\n")
+                                        if( it ) {
+                                            process.write( "'${loginId}' enabled\n")
+                                        }
+                                        else {
+                                            process.write( "'${loginId}' disabled\n")
+                                        }
                                         process.end()
                                     },
                                     {
                                         logger.error { it }
-                                        process.write( "Error checking login: ${it.message}\n")
-                                        process.end()
-                                    },
-                                    {
-                                        process.write( "Password '${password}' does not match for '${loginId}' or login is disabled\n")
+                                        process.write( "Error enabling/disabling login: ${it.message}\n")
                                         process.end()
                                     }
                             )

@@ -17,6 +17,7 @@ package com.swanpipe.verticles
 
 import com.swanpipe.tcs.CheckLogin
 import com.swanpipe.tcs.CreateActorLogin
+import com.swanpipe.tcs.EnableLogin
 import io.vertx.core.AbstractVerticle
 import io.vertx.ext.shell.ShellService
 import io.vertx.ext.shell.ShellServiceOptionsConverter
@@ -57,6 +58,7 @@ class Ssh : AbstractVerticle() {
         val service = ShellService.create(vertx, options )
         CommandRegistry.getShared(vertx).registerCommand(CreateActorLogin().command(vertx))
         CommandRegistry.getShared(vertx).registerCommand(CheckLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(EnableLogin().command(vertx))
         service.start { ar ->
             if (!ar.succeeded()) {
                 ar.cause().printStackTrace()
