@@ -191,5 +191,39 @@ object LoginActionsTest {
                 )
     }
 
+    @DisplayName( "Check Disabled Login test" )
+    @Test()
+    fun testCheckDisabledLogin( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        val json = JsonObject()
+                .put( "id", "foo" )
+                .put( "password", "secret" )
+        LoginActions.createLogin( json )
+                .flatMap { _ ->
+                    LoginDao.enableLogin( "foo", false )
+                }
+                .flatMapMaybe {
+                    LoginActions.checkLogin( "foo", "secret" )
+                }
+                .subscribe(
+                        {
+                            testContext.failNow( RuntimeException( "bad login failed"))
+                        },
+                        {
+                            testContext.failNow( it )
+                        },
+                        {
+                            LoginDao.getLogin( "foo" )
+                                    .subscribe { login ->
+                                        testContext.verify {
+                                            assertThat( login.data.getString( "lastFailedLogin" ) ).isNotBlank()
+                                        }
+                                        testContext.completeNow()
+                                    }
+                        }
+                )
+    }
+
+
 }
 

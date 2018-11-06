@@ -80,7 +80,6 @@ object LoginActions {
         return getLogin( id )
                 .flatMap { login ->
                     val now = OffsetDateTime.now()
-                    // TODO need a test for the enabled part
                     if (! (BCrypt.checkpw(password, login.password) && login.enabled )  ) {
                         setLoginData(id, arrayOf("lastFailedLogin"), "$now" )
                                 .flatMapMaybe { Maybe.empty<Login>() }
