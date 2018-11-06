@@ -164,5 +164,37 @@ object LoginDaoTest {
                 }
     }
 
+    @DisplayName( "Test enabling login" )
+    @Test
+    fun testEnableLogin( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        LoginDao.createLogin( "foo", "secret" )
+                .flatMap { _ ->
+                    LoginDao.enableLogin( "foo", false )
+                }
+                .flatMapMaybe { _ ->
+                    LoginDao.getLogin( "foo" )
+                }
+                .flatMapSingle { login ->
+                    assertThat( login.enabled ).isFalse()
+                    LoginDao.enableLogin( "foo", true )
+                }
+                .flatMapMaybe { _ ->
+                    LoginDao.getLogin( "foo" )
+                }
+                .subscribe(
+                        { login ->
+                            testContext.verify {
+                                assertThat( login.enabled ).isTrue()
+                            }
+                            testContext.completeNow()
+                        },
+                        {
+                            testContext.failNow( it )
+                        }
+
+                )
+    }
+
 }
 

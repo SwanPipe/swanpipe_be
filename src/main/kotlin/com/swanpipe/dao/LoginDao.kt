@@ -97,6 +97,20 @@ object LoginDao {
                 }
     }
 
+    fun enableLogin( id: String, enabled: Boolean ) : Single<Boolean> {
+        return PgClient( Db.pgPool )
+                .rxPreparedQuery( """
+                    update ${table("login")}
+                    set enabled = $2
+                    where id = $1
+                    returning enabled
+                """.trimIndent(),
+                        Tuple.of( id, enabled )
+                )
+                .flatMap { pgRowSet ->
+                    Single.just( pgRowSet.iterator().next().getBoolean( "enabled" ) )
+                }
+    }
 
 }
 
