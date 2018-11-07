@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.dao
+package com.swanpipe.daos
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table

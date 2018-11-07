@@ -16,7 +16,7 @@
 
 package com.swanpipe.actions
 
-import com.swanpipe.dao.ActorLoginDao
+import com.swanpipe.daos.ActorLoginDao
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
 

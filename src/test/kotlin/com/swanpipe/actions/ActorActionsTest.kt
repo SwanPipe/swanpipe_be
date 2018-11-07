@@ -27,7 +27,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of login dao" )
+@DisplayName( "Test of login daos" )
 @ExtendWith( VertxExtension::class )
 object ActorActionsTest {
 

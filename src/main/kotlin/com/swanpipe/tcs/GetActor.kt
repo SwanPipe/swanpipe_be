@@ -16,7 +16,7 @@
 
 package com.swanpipe.tcs
 
-import com.swanpipe.dao.ActorDao
+import com.swanpipe.daos.ActorDao
 import io.vertx.core.Vertx
 import io.vertx.core.cli.CLI
 import io.vertx.ext.shell.command.Command

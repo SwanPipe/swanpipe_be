@@ -16,7 +16,7 @@
 
 package com.swanpipe.tcs
 
-import com.swanpipe.dao.LoginDao
+import com.swanpipe.daos.LoginDao
 import io.vertx.core.Vertx
 import io.vertx.core.cli.CLI
 import io.vertx.ext.shell.command.Command

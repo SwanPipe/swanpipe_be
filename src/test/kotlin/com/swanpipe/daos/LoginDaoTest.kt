@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.dao
+package com.swanpipe.daos
 
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
@@ -27,7 +27,7 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of login dao" )
+@DisplayName( "Test of login daos" )
 @ExtendWith( VertxExtension::class )
 object LoginDaoTest {
 

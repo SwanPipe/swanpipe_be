@@ -18,8 +18,8 @@ package com.swanpipe.actions
 
 import com.markodevcic.kvalidation.onError
 import com.markodevcic.kvalidation.rules
-import com.swanpipe.dao.Actor
-import com.swanpipe.dao.ActorDao
+import com.swanpipe.daos.Actor
+import com.swanpipe.daos.ActorDao
 import com.swanpipe.utils.JsonValidator
 import com.swanpipe.utils.genRsa2048
 import io.reactivex.Single

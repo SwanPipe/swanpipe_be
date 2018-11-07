@@ -17,7 +17,7 @@
 package com.swanpipe.actions
 
 import com.swanpipe.InitPg
-import com.swanpipe.dao.LoginDao
+import com.swanpipe.daos.LoginDao
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.ValidationException
 import io.vertx.core.Vertx
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mindrot.jbcrypt.BCrypt
 
-@DisplayName( "Test of login dao" )
+@DisplayName( "Test of login daos" )
 @ExtendWith( VertxExtension::class )
 object LoginActionsTest {
 

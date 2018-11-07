@@ -18,10 +18,10 @@ package com.swanpipe.actions
 
 import com.markodevcic.kvalidation.onError
 import com.markodevcic.kvalidation.rules
-import com.swanpipe.dao.Login
-import com.swanpipe.dao.LoginDao
-import com.swanpipe.dao.LoginDao.getLogin
-import com.swanpipe.dao.LoginDao.setLoginData
+import com.swanpipe.daos.Login
+import com.swanpipe.daos.LoginDao
+import com.swanpipe.daos.LoginDao.getLogin
+import com.swanpipe.daos.LoginDao.setLoginData
 import com.swanpipe.utils.JsonValidator
 import com.swanpipe.utils.ValidationException
 import io.reactivex.Maybe

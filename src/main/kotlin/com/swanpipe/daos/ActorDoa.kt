@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.swanpipe.dao
+package com.swanpipe.daos
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
@@ -22,58 +22,59 @@ import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
 import io.reactivex.Single
+import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import java.time.OffsetDateTime
 
-data class Login(
-        val id: String,
-        val password: String,
-        val enabled: Boolean,
+data class Actor(
+        val pun: String,
         val created : OffsetDateTime,
+        val publicKeyPem : String,
+        val privateKey : Buffer,
         val data : JsonObject
-        )
+)
 
-object LoginDao {
+object ActorDao {
 
-    fun mapRowToLogin( row : Row ) : Login {
-        return Login(
-                id = row.getString( "id" ),
-                password = row.getString( "password" ),
-                enabled = row.getBoolean( "enabled" ),
+    fun mapRowToActor( row : Row ) : Actor {
+        return Actor(
+                pun = row.getString( "pun" ),
                 created = row.delegate.getOffsetDateTime( "created" ),
+                publicKeyPem = row.getString( "public_key_pem" ),
+                privateKey = row.delegate.getBuffer( "private_key" ),
                 data = row.getJson( "data" ).value() as JsonObject
         )
     }
 
-    fun createLogin( id : String, password : String ) : Single<Login> {
+    fun createActor( pun : String, keypair : Pair<String,Buffer> ) : Single<Actor> {
         return PgClient( Db.pgPool )
                 .rxPreparedQuery(
-                        """insert into ${table("login")}
-                        | ( id, password )
-                        | values ($1,$2) returning
-                        | id, password, enabled, created, data""".trimMargin(),
-                        Tuple.of( id, password ) )
+                        """insert into ${table("actor")}
+                        | ( pun, public_key_pem, private_key )
+                        | values ($1,$2,$3) returning
+                        | pun, created, public_key_pem, private_key, data""".trimMargin(),
+                        Tuple.of( pun, keypair.first, keypair.second ))
                 .map { pgRowSet ->
-                    mapRowToLogin( pgRowSet.iterator().next() )
+                    mapRowToActor( pgRowSet.iterator().next() )
                 }
     }
 
-    fun getLogin( id: String ) : Maybe<Login> {
+    fun getActor( pun: String ) : Maybe<Actor> {
         return PgClient( Db.pgPool )
                 .rxPreparedQuery(
                         """select
-                        | id,
-                        | password,
-                        | enabled,
+                        | pun,
                         | created,
+                        | public_key_pem,
+                        | private_key,
                         | data
-                        | from ${table("login")}
-                        |where id = $1""".trimMargin(),
-                        Tuple.of( id ))
-                .flatMapMaybe<Login> { pgRowSet ->
+                        | from ${table("actor")}
+                        |where pun = $1""".trimMargin(),
+                        Tuple.of( pun ))
+                .flatMapMaybe<Actor> { pgRowSet ->
                     if( pgRowSet.size() != 0 ) {
                         val row = pgRowSet.iterator().next()
-                        Maybe.just( mapRowToLogin( row ) )
+                        Maybe.just( mapRowToActor( row ) )
                     }
                     else {
                         Maybe.empty()
@@ -81,34 +82,19 @@ object LoginDao {
                 }
     }
 
-    fun setLoginData( id: String, path : Array<String>, data: Any) : Single<JsonObject> {
+    fun setActorData( pun: String, path: Array<String>, data: Any ) : Single<JsonObject> {
         return PgClient( Db.pgPool )
                 .rxPreparedQuery(
                         """
-                        update ${table("login")}
+                        update ${table("actor")}
                         set data = jsonb_set( data, $2, $3::jsonb )
-                        where id = $1
+                        where pun = $1
                         returning data
                     """.trimIndent(),
-                        Tuple.of( id, path, data )
+                        Tuple.of( pun, path, data )
                 )
                 .flatMap { pgRowSet ->
                     Single.just( pgRowSet.iterator().next().getJson( "data" ).value() as JsonObject )
-                }
-    }
-
-    fun enableLogin( id: String, enabled: Boolean ) : Single<Boolean> {
-        return PgClient( Db.pgPool )
-                .rxPreparedQuery( """
-                    update ${table("login")}
-                    set enabled = $2
-                    where id = $1
-                    returning enabled
-                """.trimIndent(),
-                        Tuple.of( id, enabled )
-                )
-                .flatMap { pgRowSet ->
-                    Single.just( pgRowSet.iterator().next().getBoolean( "enabled" ) )
                 }
     }
 
