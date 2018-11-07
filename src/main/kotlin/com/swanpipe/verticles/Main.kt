@@ -51,7 +51,7 @@ class Main : AbstractVerticle() {
                 .flatMap {
                     config().getJsonObject( SSH_CONFIG_NAME )?.let {
                         val options = DeploymentOptions().setConfig( config() )
-                        RxHelper.deployVerticle( io.vertx.reactivex.core.Vertx.vertx(), Ssh(), options )
+                        RxHelper.deployVerticle( io.vertx.reactivex.core.Vertx( vertx ), Ssh(), options )
                     }
                     ?: Single.just( "No ssh configuration found. SSH veritcle not deployed" )
                 }
@@ -60,7 +60,7 @@ class Main : AbstractVerticle() {
                     //TODO see about deploying multiple instance of http for scaling purposes
                     logger.info { "verticle deployment: ${it}" }
                     val options = DeploymentOptions().setConfig( config() )
-                    RxHelper.deployVerticle( io.vertx.reactivex.core.Vertx.vertx(), Http(), options )
+                    RxHelper.deployVerticle( io.vertx.reactivex.core.Vertx( vertx ), Http(), options )
                 }
                 .subscribe(
                         {
