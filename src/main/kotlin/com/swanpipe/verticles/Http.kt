@@ -16,13 +16,11 @@
 package com.swanpipe.verticles
 
 import com.swanpipe.actions.PUN_CHARS
-import com.swanpipe.utils.Db
-import com.swanpipe.utils.Version
+import com.swanpipe.routers.apiRouter
+import com.swanpipe.routers.usersRouter
 import io.vertx.core.Future
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.http.HttpServerOptions
-import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.ext.web.Router
 import mu.KLogging
@@ -31,6 +29,11 @@ const val HTTP_CONFIG_NAME = "http"
 const val DEFAULT_PORT = 8080
 const val DEFAULT_HOST = "localhost"
 const val INSTANCES = "instances"
+
+const val ACTIVITY_JSON_TYPE = "application/activity+json"
+const val JSON_TYPE = "application/json"
+
+const val CONTENT_TYPE_HEADER = "Content-Type"
 
 class Http : AbstractVerticle() {
 
@@ -48,41 +51,16 @@ class Http : AbstractVerticle() {
         val server = vertx.createHttpServer( serverOptions )
         val router = Router.router( vertx )
 
-        router.get("/api/v1/instance")
-                .handler { rc ->
-                    rc.response().putHeader("Content-Type", "application/json")
-                            .end(
-                                    json {
-                                        obj(
-                                                "version" to Version.version,
-                                                "buildDate" to Version.buildDate.toString(),
-                                                "flywayVersion" to Db.flywayVersion,
-                                                "configuredFlywayVersion" to Db.configuredFlywayVerstion,
-                                                "installOn" to Db.installedOn.toString()
-                                        )
-                                    }.encodePrettily()
-                            )
-                }
+        router.mountSubRouter( "/api", apiRouter( vertx ))
+        router.mountSubRouter( "/users", usersRouter( vertx ))
 
         router.routeWithRegex( "/@(${PUN_CHARS})" )
                 .handler { rc ->
                     val pun = rc.request().getParam( "param0" )
                     rc.response()
                             .setStatusCode( 303 )
-                            .putHeader( "Location", "http://localhost/users/${pun}" )
+                            .putHeader( "Location", "/users/${pun}" )
                             .end()
-                }
-
-        router.routeWithRegex( "/@.*/" )
-                .handler { rc ->
-                    rc.response().putHeader( "Content-Type", "text/plain" )
-                            .end( "Hello World 2" )
-                }
-
-        router.routeWithRegex( "/@.*/follows" )
-                .handler { rc ->
-                    rc.response().putHeader( "Content-Type", "text/plain" )
-                            .end( "Follows" )
                 }
 
         server.requestHandler { router.accept(it) }
