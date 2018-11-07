@@ -54,11 +54,6 @@ class Ssh : AbstractVerticle() {
         val options = ShellServiceOptions()
         ShellServiceOptionsConverter.fromJson( sshConfig, options )
         val service = ShellService.create(vertx, options )
-        CommandRegistry.getShared(vertx).registerCommand(CreateActorLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(CheckLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(EnableLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(GetLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(GetActor().command(vertx))
         service.start { ar ->
             if (!ar.succeeded()) {
                 ar.cause().printStackTrace()

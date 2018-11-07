@@ -15,6 +15,7 @@
  */
 package com.swanpipe.verticles
 
+import com.swanpipe.tcs.*
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.dbConfig
 import com.swanpipe.utils.Db.table
@@ -26,6 +27,7 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.shell.command.CommandRegistry
 import io.vertx.kotlin.core.DeploymentOptions
 import io.vertx.reactivex.core.RxHelper
 import mu.KLogging
@@ -43,6 +45,8 @@ class Main : AbstractVerticle() {
     override fun start(startFuture: Future<Void>) {
 
         logger.info( "configuration: \n${config().encodePrettily()}")
+
+        registerTermCommands( vertx )
 
         logVersion( vertx )
                 .flatMap {
@@ -156,6 +160,14 @@ class Main : AbstractVerticle() {
                 emitter.onError(RuntimeException("database does not appear to be configured"))
             }
         }
+    }
+
+    fun registerTermCommands( vertx: Vertx ) {
+        CommandRegistry.getShared(vertx).registerCommand(CreateActorLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(CheckLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(EnableLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(GetLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(GetActor().command(vertx))
     }
 }
 
