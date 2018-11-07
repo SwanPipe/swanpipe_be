@@ -15,7 +15,6 @@
  */
 package com.swanpipe.verticles
 
-import com.swanpipe.tcs.*
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.dbConfig
 import com.swanpipe.utils.Db.table
@@ -27,7 +26,6 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.shell.command.CommandRegistry
 import io.vertx.kotlin.core.DeploymentOptions
 import io.vertx.reactivex.core.RxHelper
 import mu.KLogging
@@ -46,8 +44,6 @@ class Main : AbstractVerticle() {
 
         logger.info( "configuration: \n${config().encodePrettily()}")
 
-        registerTermCommands( vertx )
-
         logVersion( vertx )
                 .flatMap {
                     dbInit( vertx, config() )
@@ -60,7 +56,6 @@ class Main : AbstractVerticle() {
                     ?: Single.just( "No ssh configuration found. SSH veritcle not deployed" )
                 }
                 .flatMap {
-                    // TODO add separate web admin
                     //TODO see about deploying multiple instance of http for scaling purposes
                     logger.info { "verticle deployment: ${it}" }
                     val options = DeploymentOptions().setConfig( config() )
@@ -162,12 +157,5 @@ class Main : AbstractVerticle() {
         }
     }
 
-    fun registerTermCommands( vertx: Vertx ) {
-        CommandRegistry.getShared(vertx).registerCommand(CreateActorLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(CheckLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(EnableLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(GetLogin().command(vertx))
-        CommandRegistry.getShared(vertx).registerCommand(GetActor().command(vertx))
-    }
 }
 

@@ -17,6 +17,7 @@ package com.swanpipe.verticles
 
 import com.swanpipe.tcs.*
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Vertx
 import io.vertx.ext.shell.ShellService
 import io.vertx.ext.shell.ShellServiceOptionsConverter
 import io.vertx.ext.shell.command.CommandRegistry
@@ -35,6 +36,8 @@ class Ssh : AbstractVerticle() {
 
         val host = config().getJsonObject( SSH_CONFIG_NAME ).getString( "host", "localhost" )
         val port = config().getJsonObject( SSH_CONFIG_NAME ).getInteger( "port", 5000 )
+
+        registerTermCommands( vertx )
 
         val sshConfig = json {
             obj("sshOptions" to obj(
@@ -62,6 +65,14 @@ class Ssh : AbstractVerticle() {
                 logger.info { "SSH admin service started on ${host}:${port}" }
             }
         }
+    }
+
+    fun registerTermCommands( vertx: Vertx) {
+        CommandRegistry.getShared(vertx).registerCommand(CreateActorLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(CheckLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(EnableLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(GetLogin().command(vertx))
+        CommandRegistry.getShared(vertx).registerCommand(GetActor().command(vertx))
     }
 
 }
