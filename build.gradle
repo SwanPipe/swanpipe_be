@@ -74,7 +74,7 @@ dependencies {
     compile "io.vertx:vertx-auth-shiro:$vertx_version"
     
     // Reactive PG Client
-    compile "io.reactiverse:reactive-pg-client:0.10.6"
+    compile "io.reactiverse:reactive-pg-client:0.10.7"
     
     // Jackson Kotlin module
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
