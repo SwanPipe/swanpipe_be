@@ -41,11 +41,10 @@ object InitPg {
             pg = EmbeddedPostgres
                     .builder()
                     // none of this seems to work for whatever reason
-                    //.setServerConfig( "log-connections", "true" )
-                    //.setServerConfig( "log-statement", "all" )
-                    //.setServerConfig( "log_min_duration_statement", "0" )
-                    //.setServerConfig( "log_destination", "stderr" )
-                    //.setServerConfig( "logging_collector", "on" )
+                    .setServerConfig( "log-connections", "true" )
+                    .setServerConfig( "log-statement", "all" )
+                    .setServerConfig( "log_min_duration_statement", "-1" )
+                    .setServerConfig( "log_destination", "stderr" )
                     .start()
             println( "Embedded Postgres started on port ${pg!!.getPort()}" )
             pgStarted = true
