@@ -23,6 +23,7 @@ import io.reactiverse.pgclient.PgClient
 import io.reactiverse.pgclient.PgPoolOptions
 import io.reactivex.Single
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -56,10 +57,16 @@ class Main : AbstractVerticle() {
                     ?: Single.just( "No ssh configuration found. SSH veritcle not deployed" )
                 }
                 .flatMap {
-                    //TODO see about deploying multiple instance of http for scaling purposes
                     logger.info { "verticle deployment: ${it}" }
                     val options = DeploymentOptions().setConfig( config() )
-                    RxHelper.deployVerticle( io.vertx.reactivex.core.Vertx( vertx ), Http(), options )
+                    val httpConfig = config().getJsonObject( HTTP_CONFIG_NAME )
+                    if( httpConfig.getInteger( INSTANCES ) != null ) {
+                        options.instances = httpConfig.getInteger( INSTANCES )
+                    }
+                    else {
+                        options.instances = Runtime.getRuntime().availableProcessors()
+                    }
+                    deployVerticle( vertx, Http::class.java.name, options )
                 }
                 .subscribe(
                         {
@@ -153,6 +160,19 @@ class Main : AbstractVerticle() {
             } else {
                 logger.error { "database not configured: dbConfig = ${dbConfig}" }
                 emitter.onError(RuntimeException("database does not appear to be configured"))
+            }
+        }
+    }
+
+    fun deployVerticle( vertx: Vertx, name: String, options: DeploymentOptions ) : Single<String> {
+        return Single.create {  emmitter ->
+            vertx.deployVerticle( name, options ) { ar ->
+                if( ar.succeeded() ) {
+                    emmitter.onSuccess( ar.result() )
+                }
+                else {
+                    emmitter.onError( ar.cause() )
+                }
             }
         }
     }

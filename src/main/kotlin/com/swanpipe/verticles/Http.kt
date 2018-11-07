@@ -29,6 +29,7 @@ import mu.KLogging
 const val HTTP_CONFIG_NAME = "http"
 const val DEFAULT_PORT = 8080
 const val DEFAULT_HOST = "localhost"
+const val INSTANCES = "instances"
 
 class Http : AbstractVerticle() {
 
