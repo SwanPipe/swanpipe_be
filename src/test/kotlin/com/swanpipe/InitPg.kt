@@ -38,7 +38,15 @@ object InitPg {
 
     fun startPg() : InitPg {
         if( !pgStarted ) {
-            pg = EmbeddedPostgres.start()
+            pg = EmbeddedPostgres
+                    .builder()
+                    // none of this seems to work for whatever reason
+                    //.setServerConfig( "log-connections", "true" )
+                    //.setServerConfig( "log-statement", "all" )
+                    //.setServerConfig( "log_min_duration_statement", "0" )
+                    //.setServerConfig( "log_destination", "stderr" )
+                    //.setServerConfig( "logging_collector", "on" )
+                    .start()
             println( "Embedded Postgres started on port ${pg!!.getPort()}" )
             pgStarted = true
         }
@@ -59,7 +67,10 @@ object InitPg {
             if( !Db.isConfigured() ) {
                 throw RuntimeException( "unable to initialize database for testing" )
             }
-            flyway = Flyway.configure().dataSource("jdbc:postgresql://localhost:${pg!!.port}/postgres", "postgres", "secret").load()
+            flyway = Flyway
+                    .configure()
+                    .dataSource("jdbc:postgresql://localhost:${pg!!.port}/postgres", "postgres", "secret")
+                    .load()
         }
         return this
     }

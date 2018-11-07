@@ -62,7 +62,7 @@ object NonVertiicleTest {
         InitPg.pool( vertx )
         createSingle().subscribe(
                 { t ->
-                    assertThat( t ).isEqualTo( 1 )
+                    assertThat( t ).isEqualTo( 2 )
                     testContext.completeNow()
                 },
                 {
