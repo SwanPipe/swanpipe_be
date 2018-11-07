@@ -42,7 +42,7 @@ class Main : AbstractVerticle() {
 
     override fun start(startFuture: Future<Void>) {
 
-        logger.info( "configuration: ${config()}")
+        logger.info( "configuration: \n${config().encodePrettily()}")
 
         logVersion( vertx )
                 .flatMap {

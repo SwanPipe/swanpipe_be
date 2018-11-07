@@ -20,6 +20,7 @@ import io.vertx.core.AsyncResult
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import mu.KLogging
 import java.io.File
 
 fun main( args: Array<String> ) {
@@ -30,10 +31,10 @@ fun main( args: Array<String> ) {
     val options = DeploymentOptions().setConfig( JsonObject( config ) )
     vertx.deployVerticle( Main::class.java.name, options ) { ar ->
         if( ar.succeeded() ) {
-            println( "Deployment of ${ar.result()} succeeded")
+            KLogging().logger.info ( "Deployment of ${ar.result()} succeeded")
         }
         else {
-            println( "Unable to deploy SwanPipe main verticle!")
+            KLogging().logger.error ( "Unable to deploy SwanPipe main verticle: ${ar.cause()}")
             vertx.close()
         }
     }
