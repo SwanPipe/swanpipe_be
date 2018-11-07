@@ -19,7 +19,6 @@ package com.swanpipe.tcs
 import com.swanpipe.actions.ActorActions
 import com.swanpipe.actions.ActorLoginActions
 import com.swanpipe.actions.LoginActions
-import com.swanpipe.dao.ActorLoginDao
 import com.swanpipe.utils.ValidationException
 import io.vertx.core.Vertx
 import io.vertx.core.cli.CLI

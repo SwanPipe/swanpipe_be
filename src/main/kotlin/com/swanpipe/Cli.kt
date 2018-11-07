@@ -16,7 +16,6 @@
 package com.swanpipe
 
 import com.swanpipe.verticles.Main
-import io.vertx.core.AsyncResult
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject

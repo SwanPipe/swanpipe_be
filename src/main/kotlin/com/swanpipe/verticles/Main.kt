@@ -27,7 +27,6 @@ import io.vertx.core.DeploymentOptions
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.DeploymentOptions
 import io.vertx.reactivex.core.RxHelper
 import mu.KLogging
 import java.time.OffsetDateTime

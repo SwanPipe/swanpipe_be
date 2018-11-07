@@ -17,12 +17,10 @@ package com.swanpipe.dao
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
-import com.swanpipe.utils.genRsa2048
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Single
 import io.vertx.core.buffer.Buffer
-import org.mindrot.jbcrypt.BCrypt
 
 object ActorLoginDao {
 

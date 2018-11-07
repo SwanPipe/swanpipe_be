@@ -19,7 +19,6 @@ package com.swanpipe.actions
 import com.swanpipe.dao.ActorLoginDao
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.json.get
 
 object ActorLoginActions {
 
