@@ -15,6 +15,7 @@
  */
 package com.swanpipe.verticles
 
+import com.swanpipe.actions.PUN_CHARS
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Version
 import io.vertx.core.Future
@@ -63,10 +64,13 @@ class Http : AbstractVerticle() {
                             )
                 }
 
-        router.routeWithRegex( "/@[^/]*" )
+        router.routeWithRegex( "/@(${PUN_CHARS})" )
                 .handler { rc ->
-                    rc.response().putHeader( "Content-Type", "text/plain" )
-                            .end( "Hello World" )
+                    val pun = rc.request().getParam( "param0" )
+                    rc.response()
+                            .setStatusCode( 303 )
+                            .putHeader( "Location", "http://localhost/users/${pun}" )
+                            .end()
                 }
 
         router.routeWithRegex( "/@.*/" )
