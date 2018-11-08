@@ -26,37 +26,36 @@ object Db {
 
     var config: JsonObject? = null
 
-    lateinit var dbConfig : JsonObject
+    lateinit var dbConfig: JsonObject
 
-    lateinit var pgPool : PgPool
+    lateinit var pgPool: PgPool
 
     lateinit var flywayVersion: String
 
-    lateinit var installedOn : LocalDateTime
+    lateinit var installedOn: LocalDateTime
 
-    lateinit var configuredFlywayVerstion : String
+    lateinit var configuredFlywayVerstion: String
 
-    fun schema() : String? {
-        if( isConfigured() ) {
-            return dbConfig.getString( SCHEMA_CONFIG_NAME )
+    fun schema(): String? {
+        if (isConfigured()) {
+            return dbConfig.getString(SCHEMA_CONFIG_NAME)
         }
         return null
     }
 
-    fun table( name : String ) : String? {
-        if( isConfigured() ) {
+    fun table(name: String): String? {
+        if (isConfigured()) {
             return "${schema()}.${name}"
         }
         return null
     }
 
-    fun isConfigured() : Boolean {
+    fun isConfigured(): Boolean {
         return config?.let { _ ->
-            if( config!!.getJsonObject( DB_CONFIG_NAME ) != null ) {
-                dbConfig = config!!.getJsonObject( DB_CONFIG_NAME )
+            if (config!!.getJsonObject(DB_CONFIG_NAME) != null) {
+                dbConfig = config!!.getJsonObject(DB_CONFIG_NAME)
                 true
-            }
-            else {
+            } else {
                 false
             }
         } ?: false

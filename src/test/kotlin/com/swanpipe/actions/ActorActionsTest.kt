@@ -27,77 +27,76 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of login daos" )
-@ExtendWith( VertxExtension::class )
+@DisplayName("Test of login daos")
+@ExtendWith(VertxExtension::class)
 object ActorActionsTest {
 
-    @DisplayName( "Prepare the database" )
+    @DisplayName("Prepare the database")
     @BeforeAll
     @JvmStatic
-    fun prepare( testContext: VertxTestContext) {
+    fun prepare(testContext: VertxTestContext) {
         InitPg.startPg()
         testContext.completeNow()
     }
 
-    @DisplayName( "close database" )
+    @DisplayName("close database")
     @AfterAll
     @JvmStatic
-    fun cleanUp( testContext: VertxTestContext ) {
+    fun cleanUp(testContext: VertxTestContext) {
         Db.pgPool.close()
         testContext.completeNow()
     }
 
-    @DisplayName( "Setup data" )
+    @DisplayName("Setup data")
     @BeforeEach
-    fun prepareEach( testContext: VertxTestContext ) {
+    fun prepareEach(testContext: VertxTestContext) {
         InitPg.clean().migrate()
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create actor action" )
+    @DisplayName("Test create actor action")
     @Test
-    fun testCreateActor( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
+    fun testCreateActor(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
         val json = JsonObject()
-                .put( "pun", "foo" )
-        ActorActions.createActor( json )
-                .subscribe(
-                        { actor ->
-                            testContext.verify {
-                                assertThat(actor.pun).isEqualTo("foo")
-                                assertThat(actor.publicKeyPem).isNotBlank()
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow(it)
-                        }
-                )
+            .put("pun", "foo")
+        ActorActions.createActor(json)
+            .subscribe(
+                { actor ->
+                    testContext.verify {
+                        assertThat(actor.pun).isEqualTo("foo")
+                        assertThat(actor.publicKeyPem).isNotBlank()
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
+                }
+            )
     }
 
-    @DisplayName( "Test create actor action bad pun" )
+    @DisplayName("Test create actor action bad pun")
     @Test
-    fun testCreateActorBadPun( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
+    fun testCreateActorBadPun(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
         val json = JsonObject()
-                .put( "pun", "bobby@foo.com" )
-        LoginActions.createLogin( json )
-                .subscribe(
-                        {
-                            testContext.failNow( RuntimeException( "test failed" ))
-                        },
-                        {
-                            if( it is ValidationException ) {
-                                testContext.verify {
-                                    assertThat( it.issues.isEmpty() ).isFalse()
-                                }
-                                testContext.completeNow()
-                            }
-                            else {
-                                testContext.failNow( RuntimeException( "test failed" ))
-                            }
+            .put("pun", "bobby@foo.com")
+        LoginActions.createLogin(json)
+            .subscribe(
+                {
+                    testContext.failNow(RuntimeException("test failed"))
+                },
+                {
+                    if (it is ValidationException) {
+                        testContext.verify {
+                            assertThat(it.issues.isEmpty()).isFalse()
                         }
-                )
+                        testContext.completeNow()
+                    } else {
+                        testContext.failNow(RuntimeException("test failed"))
+                    }
+                }
+            )
     }
 
 }

@@ -28,36 +28,35 @@ class EnableLogin {
 
     companion object : KLogging()
 
-    val cli = CLI.create( "enable-login" )
-            .setSummary( "Enables and disables a login" )
-            .addOption( Option( argName="Login ID", shortName = "l", longName = "login-id", required = true ) )
-            .addOption( Option( argName="Disable", shortName = "d", longName = "disable", flag = true, required = false ) )
-            .addOption( Option( argName = "help", shortName = "h", longName = "help", flag = true, help = true ) )
+    val cli = CLI.create("enable-login")
+        .setSummary("Enables and disables a login")
+        .addOption(Option(argName = "Login ID", shortName = "l", longName = "login-id", required = true))
+        .addOption(Option(argName = "Disable", shortName = "d", longName = "disable", flag = true, required = false))
+        .addOption(Option(argName = "help", shortName = "h", longName = "help", flag = true, help = true))
 
-    fun command( vertx: Vertx) : Command {
-        return CommandBuilder.command( cli )
-                .processHandler { process ->
-                    val commandLine = process.commandLine()
-                    val loginId = commandLine.getOptionValue<String>( "login-id" )
-                    val disable = commandLine.isFlagEnabled( "disable" )
-                    LoginDao.enableLogin( loginId, !disable)
-                            .subscribe(
-                                    {
-                                        if( it ) {
-                                            process.write( "'${loginId}' enabled\n")
-                                        }
-                                        else {
-                                            process.write( "'${loginId}' disabled\n")
-                                        }
-                                        process.end()
-                                    },
-                                    {
-                                        logger.error { it }
-                                        process.write( "Error enabling/disabling login: ${it.message}\n")
-                                        process.end()
-                                    }
-                            )
-                }
-                .build( vertx )
+    fun command(vertx: Vertx): Command {
+        return CommandBuilder.command(cli)
+            .processHandler { process ->
+                val commandLine = process.commandLine()
+                val loginId = commandLine.getOptionValue<String>("login-id")
+                val disable = commandLine.isFlagEnabled("disable")
+                LoginDao.enableLogin(loginId, !disable)
+                    .subscribe(
+                        {
+                            if (it) {
+                                process.write("'${loginId}' enabled\n")
+                            } else {
+                                process.write("'${loginId}' disabled\n")
+                            }
+                            process.end()
+                        },
+                        {
+                            logger.error { it }
+                            process.write("Error enabling/disabling login: ${it.message}\n")
+                            process.end()
+                        }
+                    )
+            }
+            .build(vertx)
     }
 }

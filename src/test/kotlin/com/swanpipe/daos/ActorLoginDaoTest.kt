@@ -25,104 +25,104 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of actor/login daos" )
-@ExtendWith( VertxExtension::class )
+@DisplayName("Test of actor/login daos")
+@ExtendWith(VertxExtension::class)
 object ActorLoginDaoTest {
 
-    @DisplayName( "Prepare the database" )
+    @DisplayName("Prepare the database")
     @BeforeAll
     @JvmStatic
-    fun prepare( testContext: VertxTestContext) {
+    fun prepare(testContext: VertxTestContext) {
         InitPg.startPg()
         testContext.completeNow()
     }
 
-    @DisplayName( "close database" )
+    @DisplayName("close database")
     @AfterAll
     @JvmStatic
-    fun cleanUp( testContext: VertxTestContext ) {
+    fun cleanUp(testContext: VertxTestContext) {
         Db.pgPool.close()
         testContext.completeNow()
     }
 
-    @DisplayName( "Setup data" )
+    @DisplayName("Setup data")
     @BeforeEach
-    fun prepareEach( testContext: VertxTestContext ) {
+    fun prepareEach(testContext: VertxTestContext) {
         InitPg.clean().migrate()
         testContext.completeNow()
     }
 
-    @DisplayName( "Test link login/actor" )
+    @DisplayName("Test link login/actor")
     @Test
-    fun testLinkActorLogin(vertx : Vertx, testContext: VertxTestContext) {
+    fun testLinkActorLogin(vertx: Vertx, testContext: VertxTestContext) {
 
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "fizzlebottom", "secret" )
-                .flatMap { _ ->
-                    val keypair = genRsa2048()
-                    ActorDao.createActor( "fizzy", keypair )
+        InitPg.pool(vertx)
+        LoginDao.createLogin("fizzlebottom", "secret")
+            .flatMap { _ ->
+                val keypair = genRsa2048()
+                ActorDao.createActor("fizzy", keypair)
+            }
+            .flatMap { _ ->
+                ActorLoginDao.linkActorLogin("fizzlebottom", "fizzy", false)
+            }
+            .flatMap { link ->
+                testContext.verify {
+                    assertThat(link.third).isEqualTo(false)
                 }
-                .flatMap { _ ->
-                    ActorLoginDao.linkActorLogin( "fizzlebottom", "fizzy", false )
-                }
-                .flatMap { link ->
+                ActorLoginDao.linkActorLogin("fizzlebottom", "fizzy", true)
+            }
+            .subscribe(
+                { triple ->
                     testContext.verify {
-                        assertThat(link.third).isEqualTo( false )
+                        assertThat(triple.first).isEqualTo("fizzlebottom")
+                        assertThat(triple.second).isEqualTo("fizzy")
+                        assertThat(triple.third).isEqualTo(true)
                     }
-                    ActorLoginDao.linkActorLogin( "fizzlebottom", "fizzy", true )
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
                 }
-                .subscribe(
-                        { triple ->
-                            testContext.verify {
-                                assertThat(triple.first).isEqualTo("fizzlebottom")
-                                assertThat(triple.second).isEqualTo("fizzy")
-                                assertThat(triple.third).isEqualTo( true )
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow(it)
-                        }
-                )
+            )
     }
 
-    @DisplayName( "Test create login/actor" )
+    @DisplayName("Test create login/actor")
     @Test
-    fun createActorLogin( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
+    fun createActorLogin(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
         val keypair = genRsa2048()
         ActorLoginDao.createActorLogin(
-                loginId = "furry",
-                password = "secret",
-                pun = "fuzzy",
-                owner = true,
-                keypair = keypair
+            loginId = "furry",
+            password = "secret",
+            pun = "fuzzy",
+            owner = true,
+            keypair = keypair
         )
-                .flatMap {
-                    testContext.verify {
-                        assertThat( it.third ).isTrue()
-                    }
-                    LoginDao.getLogin( "furry" ).toSingle()
+            .flatMap {
+                testContext.verify {
+                    assertThat(it.third).isTrue()
                 }
-                .flatMap { login ->
-                    testContext.verify {
-                        assertThat(login.id).isEqualTo("furry")
-                        assertThat(login.enabled).isEqualTo( true )
-                    }
-                    ActorDao.getActor( "fuzzy" ).toSingle()
+                LoginDao.getLogin("furry").toSingle()
+            }
+            .flatMap { login ->
+                testContext.verify {
+                    assertThat(login.id).isEqualTo("furry")
+                    assertThat(login.enabled).isEqualTo(true)
                 }
-                .subscribe(
-                        { actor ->
-                            testContext.verify {
-                                assertThat(actor.pun).isEqualTo("fuzzy")
-                                assertThat(actor.publicKeyPem).isNotBlank()
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow( it )
-                        }
-                )
+                ActorDao.getActor("fuzzy").toSingle()
+            }
+            .subscribe(
+                { actor ->
+                    testContext.verify {
+                        assertThat(actor.pun).isEqualTo("fuzzy")
+                        assertThat(actor.publicKeyPem).isNotBlank()
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
+                }
+            )
     }
 
 }

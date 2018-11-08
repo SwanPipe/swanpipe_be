@@ -28,36 +28,36 @@ class GetActor {
 
     companion object : KLogging()
 
-    val cli = CLI.create( "get-actor" )
-            .setSummary( "Gets information on an actor" )
-            .addOption( Option( argName="Preferred User Name", shortName = "p", longName = "pun", required = true ) )
-            .addOption( Option( argName = "help", shortName = "h", longName = "help", flag = true, help = true ) )
+    val cli = CLI.create("get-actor")
+        .setSummary("Gets information on an actor")
+        .addOption(Option(argName = "Preferred User Name", shortName = "p", longName = "pun", required = true))
+        .addOption(Option(argName = "help", shortName = "h", longName = "help", flag = true, help = true))
 
-    fun command( vertx: Vertx) : Command {
-        return CommandBuilder.command( cli )
-                .processHandler { process ->
-                    val commandLine = process.commandLine()
-                    val pun = commandLine.getOptionValue<String>( "pun" )
-                    ActorDao.getActor( pun )
-                            .subscribe(
-                                    { actor ->
-                                        process.write( "Preferred User Name (pun): '${actor.pun}'\n")
-                                        process.write( "Actor created:             ${actor.created}\n")
-                                        process.write( "Actor Public Key PEM\n${actor.publicKeyPem}\n")
-                                        process.write( "Actor data\n'${actor.data.encodePrettily()}'\n")
-                                        process.end()
-                                    },
-                                    {
-                                        logger.error { it }
-                                        process.write( "Error getting login: ${it.message}\n")
-                                        process.end()
-                                    },
-                                    {
-                                        process.write( "'${pun}' does not exist.\n")
-                                        process.end()
-                                    }
-                            )
-                }
-                .build( vertx )
+    fun command(vertx: Vertx): Command {
+        return CommandBuilder.command(cli)
+            .processHandler { process ->
+                val commandLine = process.commandLine()
+                val pun = commandLine.getOptionValue<String>("pun")
+                ActorDao.getActor(pun)
+                    .subscribe(
+                        { actor ->
+                            process.write("Preferred User Name (pun): '${actor.pun}'\n")
+                            process.write("Actor created:             ${actor.created}\n")
+                            process.write("Actor Public Key PEM\n${actor.publicKeyPem}\n")
+                            process.write("Actor data\n'${actor.data.encodePrettily()}'\n")
+                            process.end()
+                        },
+                        {
+                            logger.error { it }
+                            process.write("Error getting login: ${it.message}\n")
+                            process.end()
+                        },
+                        {
+                            process.write("'${pun}' does not exist.\n")
+                            process.end()
+                        }
+                    )
+            }
+            .build(vertx)
     }
 }

@@ -27,173 +27,173 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of login daos" )
-@ExtendWith( VertxExtension::class )
+@DisplayName("Test of login daos")
+@ExtendWith(VertxExtension::class)
 object LoginDaoTest {
 
-    @DisplayName( "Prepare the database" )
+    @DisplayName("Prepare the database")
     @BeforeAll
     @JvmStatic
-    fun prepare( testContext: VertxTestContext) {
+    fun prepare(testContext: VertxTestContext) {
         InitPg.startPg()
         testContext.completeNow()
     }
 
-    @DisplayName( "close database" )
+    @DisplayName("close database")
     @AfterAll
     @JvmStatic
-    fun cleanUp( testContext: VertxTestContext ) {
+    fun cleanUp(testContext: VertxTestContext) {
         Db.pgPool.close()
         testContext.completeNow()
     }
 
-    @DisplayName( "Setup data" )
+    @DisplayName("Setup data")
     @BeforeEach
-    fun prepareEach( testContext: VertxTestContext ) {
+    fun prepareEach(testContext: VertxTestContext) {
         InitPg.clean().migrate()
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create login" )
+    @DisplayName("Test create login")
     @Test
-    fun testCreateLogin(vertx : Vertx, testContext: VertxTestContext) {
+    fun testCreateLogin(vertx: Vertx, testContext: VertxTestContext) {
 
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "fizzlebottom", "secret" )
-                .flatMap { login ->
-                    assertThat( login.id ).isEqualTo( "fizzlebottom" )
-                    LoginDao.getLogin( login.id ).toSingle()
-                }
-                .subscribe(
-                        { login ->
-                            testContext.verify {
-                                assertThat(login.id).isEqualTo("fizzlebottom")
-                                assertThat(login.enabled).isEqualTo( true )
-                                assertThat(login.password).isEqualTo("secret")
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow(it)
-                        }
-                )
-    }
-
-    @DisplayName( "Test non existent login" )
-    @Test
-    fun testNonExistentLogin( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.getLogin( "nobody" )
-                .subscribe(
-                        { _ ->
-                            testContext.verify {
-                                fail( "got back a result")
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow( it )
-                        },
-                        {
-                            testContext.completeNow()
-                        }
-                )
-    }
-
-    @DisplayName( "Test setting login data" )
-    @Test
-    fun testSetLoginData( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMap { login ->
-                   LoginDao.setLoginData( login.id, arrayOf( "loginType" ), "normal" )
-                }
-                .subscribe { data ->
+        InitPg.pool(vertx)
+        LoginDao.createLogin("fizzlebottom", "secret")
+            .flatMap { login ->
+                assertThat(login.id).isEqualTo("fizzlebottom")
+                LoginDao.getLogin(login.id).toSingle()
+            }
+            .subscribe(
+                { login ->
                     testContext.verify {
-                        assertThat( data.getString( "loginType" ) ).isEqualTo( "normal" )
+                        assertThat(login.id).isEqualTo("fizzlebottom")
+                        assertThat(login.enabled).isEqualTo(true)
+                        assertThat(login.password).isEqualTo("secret")
                     }
                     testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
                 }
+            )
     }
 
-    @DisplayName( "Test setting login data as object" )
+    @DisplayName("Test non existent login")
     @Test
-    fun testSetLoginDataObject( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMap { login ->
-                    LoginDao.setLoginData( login.id, arrayOf( "loginCount" ), Json.create( JsonObject().put( "bar", "4000" ) ) )
-                }
-                .subscribe { data ->
+    fun testNonExistentLogin(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        LoginDao.getLogin("nobody")
+            .subscribe(
+                { _ ->
                     testContext.verify {
-                        assertThat( data.getJsonObject( "loginCount" ).getString("bar") ).isEqualTo( "4000" )
+                        fail("got back a result")
                     }
                     testContext.completeNow()
-                }
-    }
-
-    @DisplayName( "Test setting login data as int" )
-    @Test
-    fun testSetLoginDataInt( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMap { login ->
-                    LoginDao.setLoginData( login.id, arrayOf( "loginCount" ), Integer( 4000 ) )
-                }
-                .subscribe { data ->
-                    testContext.verify {
-                        assertThat( data.getInteger( "loginCount" ) ).isEqualTo( 4000 )
-                    }
+                },
+                {
+                    testContext.failNow(it)
+                },
+                {
                     testContext.completeNow()
                 }
+            )
     }
 
-    @DisplayName( "Test setting login data as boolean" )
+    @DisplayName("Test setting login data")
     @Test
-    fun testSetLoginDataBoolean( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMap { login ->
-                    LoginDao.setLoginData( login.id, arrayOf( "acceptsFollowers" ), false )
+    fun testSetLoginData(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        LoginDao.createLogin("foo", "secret")
+            .flatMap { login ->
+                LoginDao.setLoginData(login.id, arrayOf("loginType"), "normal")
+            }
+            .subscribe { data ->
+                testContext.verify {
+                    assertThat(data.getString("loginType")).isEqualTo("normal")
                 }
-                .subscribe { data ->
+                testContext.completeNow()
+            }
+    }
+
+    @DisplayName("Test setting login data as object")
+    @Test
+    fun testSetLoginDataObject(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        LoginDao.createLogin("foo", "secret")
+            .flatMap { login ->
+                LoginDao.setLoginData(login.id, arrayOf("loginCount"), Json.create(JsonObject().put("bar", "4000")))
+            }
+            .subscribe { data ->
+                testContext.verify {
+                    assertThat(data.getJsonObject("loginCount").getString("bar")).isEqualTo("4000")
+                }
+                testContext.completeNow()
+            }
+    }
+
+    @DisplayName("Test setting login data as int")
+    @Test
+    fun testSetLoginDataInt(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        LoginDao.createLogin("foo", "secret")
+            .flatMap { login ->
+                LoginDao.setLoginData(login.id, arrayOf("loginCount"), Integer(4000))
+            }
+            .subscribe { data ->
+                testContext.verify {
+                    assertThat(data.getInteger("loginCount")).isEqualTo(4000)
+                }
+                testContext.completeNow()
+            }
+    }
+
+    @DisplayName("Test setting login data as boolean")
+    @Test
+    fun testSetLoginDataBoolean(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        LoginDao.createLogin("foo", "secret")
+            .flatMap { login ->
+                LoginDao.setLoginData(login.id, arrayOf("acceptsFollowers"), false)
+            }
+            .subscribe { data ->
+                testContext.verify {
+                    assertThat(data.getBoolean("acceptsFollowers")).isFalse()
+                }
+                testContext.completeNow()
+            }
+    }
+
+    @DisplayName("Test enabling login")
+    @Test
+    fun testEnableLogin(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        LoginDao.createLogin("foo", "secret")
+            .flatMap { _ ->
+                LoginDao.enableLogin("foo", false)
+            }
+            .flatMapMaybe { _ ->
+                LoginDao.getLogin("foo")
+            }
+            .flatMapSingle { login ->
+                assertThat(login.enabled).isFalse()
+                LoginDao.enableLogin("foo", true)
+            }
+            .flatMapMaybe { _ ->
+                LoginDao.getLogin("foo")
+            }
+            .subscribe(
+                { login ->
                     testContext.verify {
-                        assertThat( data.getBoolean( "acceptsFollowers" ) ).isFalse()
+                        assertThat(login.enabled).isTrue()
                     }
                     testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
                 }
-    }
 
-    @DisplayName( "Test enabling login" )
-    @Test
-    fun testEnableLogin( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        LoginDao.createLogin( "foo", "secret" )
-                .flatMap { _ ->
-                    LoginDao.enableLogin( "foo", false )
-                }
-                .flatMapMaybe { _ ->
-                    LoginDao.getLogin( "foo" )
-                }
-                .flatMapSingle { login ->
-                    assertThat( login.enabled ).isFalse()
-                    LoginDao.enableLogin( "foo", true )
-                }
-                .flatMapMaybe { _ ->
-                    LoginDao.getLogin( "foo" )
-                }
-                .subscribe(
-                        { login ->
-                            testContext.verify {
-                                assertThat( login.enabled ).isTrue()
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow( it )
-                        }
-
-                )
+            )
     }
 
 }

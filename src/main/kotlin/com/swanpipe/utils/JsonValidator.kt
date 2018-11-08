@@ -19,4 +19,4 @@ package com.swanpipe.utils
 import com.markodevcic.kvalidation.ValidatorBase
 import io.vertx.core.json.JsonObject
 
-class JsonValidator( jsonObject: JsonObject) : ValidatorBase<JsonObject>( jsonObject )
+class JsonValidator(jsonObject: JsonObject) : ValidatorBase<JsonObject>(jsonObject)

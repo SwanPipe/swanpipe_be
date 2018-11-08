@@ -42,37 +42,38 @@ class Http : AbstractVerticle() {
     override fun start(startFuture: Future<Void>) {
 
         val serverOptions = HttpServerOptions()
-        val httpConfig : JsonObject? = config().getJsonObject( HTTP_CONFIG_NAME )
-        httpConfig?.let{
-            serverOptions.logActivity = httpConfig.getBoolean( "logActivity", false )
-            serverOptions.port = httpConfig.getInteger( "port", DEFAULT_PORT )
-            serverOptions.host = httpConfig.getString( "host", DEFAULT_HOST )
+        val httpConfig: JsonObject? = config().getJsonObject(HTTP_CONFIG_NAME)
+        httpConfig?.let {
+            serverOptions.logActivity = httpConfig.getBoolean("logActivity", false)
+            serverOptions.port = httpConfig.getInteger("port", DEFAULT_PORT)
+            serverOptions.host = httpConfig.getString("host", DEFAULT_HOST)
         }
-        val server = vertx.createHttpServer( serverOptions )
-        val router = Router.router( vertx )
+        val server = vertx.createHttpServer(serverOptions)
+        val router = Router.router(vertx)
 
-        router.mountSubRouter( "/api", apiRouter( vertx ))
-        router.mountSubRouter( "/users", usersRouter( vertx ))
+        router.mountSubRouter("/api", apiRouter(vertx))
+        router.mountSubRouter("/users", usersRouter(vertx))
 
-        router.routeWithRegex( "/@(${PUN_CHARS})" )
-                .handler { rc ->
-                    val pun = rc.request().getParam( "param0" )
-                    rc.response()
-                            .setStatusCode( 303 )
-                            .putHeader( "Location", "/users/${pun}" )
-                            .end()
-                }
+        router.routeWithRegex("/@(${PUN_CHARS})")
+            .handler { rc ->
+                val pun = rc.request().getParam("param0")
+                rc.response()
+                    .setStatusCode(303)
+                    .putHeader("Location", "/users/${pun}")
+                    .end()
+            }
 
         server.requestHandler { router.accept(it) }
-                .rxListen()
-                .subscribe(
-                        {
-                            logger.info {
-                                "Listening on port ${serverOptions.port} and host ${serverOptions.host} with activity logging set to ${serverOptions.logActivity}" }
-                            startFuture.complete()
-                        },
-                        {
-                            startFuture.fail(it)
-                        })
+            .rxListen()
+            .subscribe(
+                {
+                    logger.info {
+                        "Listening on port ${serverOptions.port} and host ${serverOptions.host} with activity logging set to ${serverOptions.logActivity}"
+                    }
+                    startFuture.complete()
+                },
+                {
+                    startFuture.fail(it)
+                })
     }
 }

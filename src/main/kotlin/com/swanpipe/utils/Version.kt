@@ -19,8 +19,8 @@ import java.time.OffsetDateTime
 
 object Version {
 
-    lateinit var version : String
+    lateinit var version: String
 
-    lateinit var buildDate : OffsetDateTime
+    lateinit var buildDate: OffsetDateTime
 
 }

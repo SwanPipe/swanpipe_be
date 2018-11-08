@@ -32,59 +32,59 @@ import java.time.LocalDateTime
 object InitPg {
 
     var pgStarted = false
-    var pg : EmbeddedPostgres? = null
+    var pg: EmbeddedPostgres? = null
     val dbConfig = JsonObject()
-    var flyway : Flyway? = null
+    var flyway: Flyway? = null
 
-    fun startPg() : InitPg {
-        if( !pgStarted ) {
+    fun startPg(): InitPg {
+        if (!pgStarted) {
             pg = EmbeddedPostgres
-                    .builder()
-                    // none of this seems to work for whatever reason
-                    .setServerConfig( "log-connections", "true" )
-                    .setServerConfig( "log-statement", "all" )
-                    .setServerConfig( "log_min_duration_statement", "-1" )
-                    .setServerConfig( "log_destination", "stderr" )
-                    .start()
-            println( "Embedded Postgres started on port ${pg!!.getPort()}" )
+                .builder()
+                // none of this seems to work for whatever reason
+                .setServerConfig("log-connections", "true")
+                .setServerConfig("log-statement", "all")
+                .setServerConfig("log_min_duration_statement", "-1")
+                .setServerConfig("log_destination", "stderr")
+                .start()
+            println("Embedded Postgres started on port ${pg!!.getPort()}")
             pgStarted = true
         }
-        pg?.let{
+        pg?.let {
             val config = JsonObject()
-            dbConfig.put( SCHEMA_CONFIG_NAME, "public" )
-            dbConfig.put( "port", pg!!.port )
-            dbConfig.put( "host", "localhost" )
-            dbConfig.put( "database", "postgres" )
-            dbConfig.put( "user", "postgres" )
-            dbConfig.put( "password", "secret" )
-            dbConfig.put( "maxSize", "5" )
-            config.put( DB_CONFIG_NAME, dbConfig )
+            dbConfig.put(SCHEMA_CONFIG_NAME, "public")
+            dbConfig.put("port", pg!!.port)
+            dbConfig.put("host", "localhost")
+            dbConfig.put("database", "postgres")
+            dbConfig.put("user", "postgres")
+            dbConfig.put("password", "secret")
+            dbConfig.put("maxSize", "5")
+            config.put(DB_CONFIG_NAME, dbConfig)
             Db.config = config
             Db.installedOn = LocalDateTime.now()
             Db.flywayVersion = "0"
             Db.configuredFlywayVerstion = "0"
-            if( !Db.isConfigured() ) {
-                throw RuntimeException( "unable to initialize database for testing" )
+            if (!Db.isConfigured()) {
+                throw RuntimeException("unable to initialize database for testing")
             }
             flyway = Flyway
-                    .configure()
-                    .dataSource("jdbc:postgresql://localhost:${pg!!.port}/postgres", "postgres", "secret")
-                    .load()
+                .configure()
+                .dataSource("jdbc:postgresql://localhost:${pg!!.port}/postgres", "postgres", "secret")
+                .load()
         }
         return this
     }
 
-    fun clean() : InitPg {
+    fun clean(): InitPg {
         flyway!!.clean()
         return this
     }
 
-    fun migrate() : InitPg {
+    fun migrate(): InitPg {
         flyway!!.migrate()
         return this
     }
 
-    fun pool( vertx: Vertx ) : PgClient {
+    fun pool(vertx: Vertx): PgClient {
         val options = PgPoolOptions(dbConfig)
         Db.pgPool = PgClient.pool(vertx, options)
         return Db.pgPool

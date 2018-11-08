@@ -28,36 +28,36 @@ class GetLogin {
 
     companion object : KLogging()
 
-    val cli = CLI.create( "get-login" )
-            .setSummary( "Gets information on a login" )
-            .addOption( Option( argName="Login ID", shortName = "l", longName = "login-id", required = true ) )
-            .addOption( Option( argName = "help", shortName = "h", longName = "help", flag = true, help = true ) )
+    val cli = CLI.create("get-login")
+        .setSummary("Gets information on a login")
+        .addOption(Option(argName = "Login ID", shortName = "l", longName = "login-id", required = true))
+        .addOption(Option(argName = "help", shortName = "h", longName = "help", flag = true, help = true))
 
-    fun command( vertx: Vertx) : Command {
-        return CommandBuilder.command( cli )
-                .processHandler { process ->
-                    val commandLine = process.commandLine()
-                    val loginId = commandLine.getOptionValue<String>( "login-id" )
-                    LoginDao.getLogin( loginId )
-                            .subscribe(
-                                    { login ->
-                                        process.write( "Login ID:      '${login.id}'\n")
-                                        process.write( "Login enabled: ${login.enabled}\n")
-                                        process.write( "Login created: ${login.created}\n")
-                                        process.write( "Login data\n'${login.data.encodePrettily()}'\n")
-                                        process.end()
-                                    },
-                                    {
-                                        logger.error { it }
-                                        process.write( "Error getting login: ${it.message}\n")
-                                        process.end()
-                                    },
-                                    {
-                                        process.write( "'${loginId}' does not exist.\n")
-                                        process.end()
-                                    }
-                            )
-                }
-                .build( vertx )
+    fun command(vertx: Vertx): Command {
+        return CommandBuilder.command(cli)
+            .processHandler { process ->
+                val commandLine = process.commandLine()
+                val loginId = commandLine.getOptionValue<String>("login-id")
+                LoginDao.getLogin(loginId)
+                    .subscribe(
+                        { login ->
+                            process.write("Login ID:      '${login.id}'\n")
+                            process.write("Login enabled: ${login.enabled}\n")
+                            process.write("Login created: ${login.created}\n")
+                            process.write("Login data\n'${login.data.encodePrettily()}'\n")
+                            process.end()
+                        },
+                        {
+                            logger.error { it }
+                            process.write("Error getting login: ${it.message}\n")
+                            process.end()
+                        },
+                        {
+                            process.write("'${loginId}' does not exist.\n")
+                            process.end()
+                        }
+                    )
+            }
+            .build(vertx)
     }
 }

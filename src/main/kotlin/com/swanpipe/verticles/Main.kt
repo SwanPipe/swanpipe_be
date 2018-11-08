@@ -42,51 +42,50 @@ class Main : AbstractVerticle() {
 
     override fun start(startFuture: Future<Void>) {
 
-        logger.info( "configuration: \n${config().encodePrettily()}")
+        logger.info("configuration: \n${config().encodePrettily()}")
 
-        logVersion( vertx )
-                .flatMap {
-                    dbInit( vertx, config() )
+        logVersion(vertx)
+            .flatMap {
+                dbInit(vertx, config())
+            }
+            .flatMap {
+                config().getJsonObject(SSH_CONFIG_NAME)?.let {
+                    val options = DeploymentOptions().setConfig(config())
+                    RxHelper.deployVerticle(io.vertx.reactivex.core.Vertx(vertx), Ssh(), options)
                 }
-                .flatMap {
-                    config().getJsonObject( SSH_CONFIG_NAME )?.let {
-                        val options = DeploymentOptions().setConfig( config() )
-                        RxHelper.deployVerticle( io.vertx.reactivex.core.Vertx( vertx ), Ssh(), options )
-                    }
-                    ?: Single.just( "No ssh configuration found. SSH veritcle not deployed" )
+                    ?: Single.just("No ssh configuration found. SSH veritcle not deployed")
+            }
+            .flatMap {
+                logger.info { "verticle deployment: ${it}" }
+                val options = DeploymentOptions().setConfig(config())
+                val httpConfig = config().getJsonObject(HTTP_CONFIG_NAME)
+                if (httpConfig.getInteger(INSTANCES) != null) {
+                    options.instances = httpConfig.getInteger(INSTANCES)
+                } else {
+                    options.instances = Runtime.getRuntime().availableProcessors()
                 }
-                .flatMap {
+                deployVerticle(vertx, Http::class.java.name, options)
+            }
+            .subscribe(
+                {
                     logger.info { "verticle deployment: ${it}" }
-                    val options = DeploymentOptions().setConfig( config() )
-                    val httpConfig = config().getJsonObject( HTTP_CONFIG_NAME )
-                    if( httpConfig.getInteger( INSTANCES ) != null ) {
-                        options.instances = httpConfig.getInteger( INSTANCES )
-                    }
-                    else {
-                        options.instances = Runtime.getRuntime().availableProcessors()
-                    }
-                    deployVerticle( vertx, Http::class.java.name, options )
+                    logger.info("SwanPipe startup sequence complete")
+                    startFuture.complete()
+                },
+                {
+                    startFuture.fail(it)
                 }
-                .subscribe(
-                        {
-                            logger.info { "verticle deployment: ${it}" }
-                            logger.info( "SwanPipe startup sequence complete" )
-                            startFuture.complete()
-                        },
-                        {
-                            startFuture.fail( it )
-                        }
-                )
+            )
 
     }
 
     override fun stop(stopFuture: Future<Void>?) {
-        logger.info( "Stopping ${this.javaClass.name}")
+        logger.info("Stopping ${this.javaClass.name}")
         Db.pgPool.close()
         super.stop(stopFuture)
     }
 
-    fun logVersion( vertx: Vertx ) : Single<Boolean> {
+    fun logVersion(vertx: Vertx): Single<Boolean> {
         return Single.create { emitter ->
             vertx.fileSystem().readFile("version.json") { result ->
                 if (result.succeeded()) {
@@ -101,7 +100,7 @@ class Main : AbstractVerticle() {
                         try {
                             Version.buildDate = OffsetDateTime.parse(buildDate)
                             logger.info("Starting version=${Version.version} buildDate=${Version.buildDate}")
-                            emitter.onSuccess( true )
+                            emitter.onSuccess(true)
                         } catch (e: DateTimeParseException) {
                             logger.error(e.message)
                             emitter.onError(e)
@@ -115,7 +114,7 @@ class Main : AbstractVerticle() {
         }
     }
 
-    fun dbInit( vertx: Vertx, config: JsonObject ) : Single<Boolean> {
+    fun dbInit(vertx: Vertx, config: JsonObject): Single<Boolean> {
         return Single.create { emitter ->
             Db.config = config
             if (Db.isConfigured()) {
@@ -149,7 +148,7 @@ class Main : AbstractVerticle() {
                             logger.info("Database flyway version ${Db.configuredFlywayVerstion} confirmed.")
                             logger.info("Database is at version ${Db.flywayVersion} install on ${Db.installedOn}")
                             Db.pgPool = client
-                            emitter.onSuccess( true )
+                            emitter.onSuccess(true)
                         }
                     } else {
                         logger.error("Flyway inspection failure: sql=${sql} message=${ar.cause().message}")
@@ -163,14 +162,13 @@ class Main : AbstractVerticle() {
         }
     }
 
-    fun deployVerticle( vertx: Vertx, name: String, options: DeploymentOptions ) : Single<String> {
-        return Single.create {  emmitter ->
-            vertx.deployVerticle( name, options ) { ar ->
-                if( ar.succeeded() ) {
-                    emmitter.onSuccess( ar.result() )
-                }
-                else {
-                    emmitter.onError( ar.cause() )
+    fun deployVerticle(vertx: Vertx, name: String, options: DeploymentOptions): Single<String> {
+        return Single.create { emmitter ->
+            vertx.deployVerticle(name, options) { ar ->
+                if (ar.succeeded()) {
+                    emmitter.onSuccess(ar.result())
+                } else {
+                    emmitter.onError(ar.cause())
                 }
             }
         }

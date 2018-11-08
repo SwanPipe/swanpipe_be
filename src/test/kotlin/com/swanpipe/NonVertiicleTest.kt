@@ -28,54 +28,54 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of non verticle db stuff" )
-@ExtendWith( VertxExtension::class )
+@DisplayName("Test of non verticle db stuff")
+@ExtendWith(VertxExtension::class)
 object NonVertiicleTest {
 
-    @DisplayName( "Prepare the database" )
+    @DisplayName("Prepare the database")
     @BeforeAll
     @JvmStatic
-    fun prepare( testContext: VertxTestContext) {
+    fun prepare(testContext: VertxTestContext) {
         InitPg.startPg()
         testContext.completeNow()
     }
 
-    @DisplayName( "close database" )
+    @DisplayName("close database")
     @AfterAll
     @JvmStatic
-    fun cleanUp( testContext: VertxTestContext ) {
+    fun cleanUp(testContext: VertxTestContext) {
         Db.pgPool.close()
         testContext.completeNow()
     }
 
-    @DisplayName( "Setup data" )
+    @DisplayName("Setup data")
     @BeforeEach
-    fun prepareEach( testContext: VertxTestContext ) {
+    fun prepareEach(testContext: VertxTestContext) {
         InitPg.clean().migrate()
         testContext.completeNow()
     }
 
-    @DisplayName( "Test simple db access" )
+    @DisplayName("Test simple db access")
     @Test
-    fun testNonVerticle(vertx : Vertx, testContext: VertxTestContext) {
+    fun testNonVerticle(vertx: Vertx, testContext: VertxTestContext) {
 
-        InitPg.pool( vertx )
+        InitPg.pool(vertx)
         createSingle().subscribe(
-                { t ->
-                    assertThat( t ).isEqualTo( 2 )
-                    testContext.completeNow()
-                },
-                {
-                    testContext.failNow( it )
-                }
+            { t ->
+                assertThat(t).isEqualTo(2)
+                testContext.completeNow()
+            },
+            {
+                testContext.failNow(it)
+            }
         )
     }
 
-    fun createSingle() : Single<Int> {
-        return PgClient( Db.pgPool ).rxQuery( "select version, installed_on from ${table("flyway_schema_history")} order by version desc" )
-                .map { t: PgRowSet ->
-                    t.rowCount()
-                }
+    fun createSingle(): Single<Int> {
+        return PgClient(Db.pgPool).rxQuery("select version, installed_on from ${table("flyway_schema_history")} order by version desc")
+            .map { t: PgRowSet ->
+                t.rowCount()
+            }
     }
 }
 

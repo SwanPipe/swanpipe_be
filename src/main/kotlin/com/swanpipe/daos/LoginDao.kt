@@ -26,42 +26,43 @@ import io.vertx.core.json.JsonObject
 import java.time.OffsetDateTime
 
 data class Login(
-        val id: String,
-        val password: String,
-        val enabled: Boolean,
-        val created : OffsetDateTime,
-        val data : JsonObject
-        )
+    val id: String,
+    val password: String,
+    val enabled: Boolean,
+    val created: OffsetDateTime,
+    val data: JsonObject
+)
 
 object LoginDao {
 
-    fun mapRowToLogin( row : Row ) : Login {
+    fun mapRowToLogin(row: Row): Login {
         return Login(
-                id = row.getString( "id" ),
-                password = row.getString( "password" ),
-                enabled = row.getBoolean( "enabled" ),
-                created = row.delegate.getOffsetDateTime( "created" ),
-                data = row.getJson( "data" ).value() as JsonObject
+            id = row.getString("id"),
+            password = row.getString("password"),
+            enabled = row.getBoolean("enabled"),
+            created = row.delegate.getOffsetDateTime("created"),
+            data = row.getJson("data").value() as JsonObject
         )
     }
 
-    fun createLogin( id : String, password : String ) : Single<Login> {
-        return PgClient( Db.pgPool )
-                .rxPreparedQuery(
-                        """insert into ${table("login")}
+    fun createLogin(id: String, password: String): Single<Login> {
+        return PgClient(Db.pgPool)
+            .rxPreparedQuery(
+                """insert into ${table("login")}
                         | ( id, password )
                         | values ($1,$2) returning
                         | id, password, enabled, created, data""".trimMargin(),
-                        Tuple.of( id, password ) )
-                .map { pgRowSet ->
-                    mapRowToLogin( pgRowSet.iterator().next() )
-                }
+                Tuple.of(id, password)
+            )
+            .map { pgRowSet ->
+                mapRowToLogin(pgRowSet.iterator().next())
+            }
     }
 
-    fun getLogin( id: String ) : Maybe<Login> {
-        return PgClient( Db.pgPool )
-                .rxPreparedQuery(
-                        """select
+    fun getLogin(id: String): Maybe<Login> {
+        return PgClient(Db.pgPool)
+            .rxPreparedQuery(
+                """select
                         | id,
                         | password,
                         | enabled,
@@ -69,47 +70,48 @@ object LoginDao {
                         | data
                         | from ${table("login")}
                         |where id = $1""".trimMargin(),
-                        Tuple.of( id ))
-                .flatMapMaybe<Login> { pgRowSet ->
-                    if( pgRowSet.size() != 0 ) {
-                        val row = pgRowSet.iterator().next()
-                        Maybe.just( mapRowToLogin( row ) )
-                    }
-                    else {
-                        Maybe.empty()
-                    }
+                Tuple.of(id)
+            )
+            .flatMapMaybe<Login> { pgRowSet ->
+                if (pgRowSet.size() != 0) {
+                    val row = pgRowSet.iterator().next()
+                    Maybe.just(mapRowToLogin(row))
+                } else {
+                    Maybe.empty()
                 }
+            }
     }
 
-    fun setLoginData( id: String, path : Array<String>, data: Any) : Single<JsonObject> {
-        return PgClient( Db.pgPool )
-                .rxPreparedQuery(
-                        """
+    fun setLoginData(id: String, path: Array<String>, data: Any): Single<JsonObject> {
+        return PgClient(Db.pgPool)
+            .rxPreparedQuery(
+                """
                         update ${table("login")}
                         set data = jsonb_set( data, $2, $3::jsonb )
                         where id = $1
                         returning data
                     """.trimIndent(),
-                        Tuple.of( id, path, data )
-                )
-                .flatMap { pgRowSet ->
-                    Single.just( pgRowSet.iterator().next().getJson( "data" ).value() as JsonObject )
-                }
+                Tuple.of(id, path, data)
+            )
+            .flatMap { pgRowSet ->
+                Single.just(pgRowSet.iterator().next().getJson("data").value() as JsonObject)
+            }
     }
 
-    fun enableLogin( id: String, enabled: Boolean ) : Single<Boolean> {
-        return PgClient( Db.pgPool )
-                .rxPreparedQuery( """
+    fun enableLogin(id: String, enabled: Boolean): Single<Boolean> {
+        return PgClient(Db.pgPool)
+            .rxPreparedQuery(
+                """
                     update ${table("login")}
                     set enabled = $2
                     where id = $1
                     returning enabled
                 """.trimIndent(),
-                        Tuple.of( id, enabled )
-                )
-                .flatMap { pgRowSet ->
-                    Single.just( pgRowSet.iterator().next().getBoolean( "enabled" ) )
-                }
+                Tuple.of(id, enabled)
+            )
+            .flatMap { pgRowSet ->
+                Single.just(pgRowSet.iterator().next().getBoolean("enabled"))
+            }
     }
 
 }

@@ -21,7 +21,7 @@ import com.markodevcic.kvalidation.Validator
 /**
  * Represents an exception thrown when data validation exists.
  */
-class ValidationException( message : String?) : RuntimeException( message ) {
+class ValidationException(message: String?) : RuntimeException(message) {
 
     /**
      * Put validation issues here.
@@ -29,15 +29,15 @@ class ValidationException( message : String?) : RuntimeException( message ) {
     val issues = ArrayList<String>()
 
     fun validate() {
-        if( !issues.isEmpty() ) {
+        if (!issues.isEmpty()) {
             throw this
         }
     }
 
-    fun validate( validator: Validator ) {
+    fun validate(validator: Validator) {
         val result = validator.validate()
-        for( error in result.validationErrors ) {
-            issues.add( error.message )
+        for (error in result.validationErrors) {
+            issues.add(error.message)
         }
         validate()
     }

@@ -25,22 +25,22 @@ import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.web.Router
 
-fun apiRouter( vertx: Vertx) : Router {
-    val router = Router.router( vertx )
+fun apiRouter(vertx: Vertx): Router {
+    val router = Router.router(vertx)
     router.get("/v1/instance")
-            .handler { rc ->
-                rc.response().putHeader( CONTENT_TYPE_HEADER, JSON_TYPE )
-                        .end(
-                                json {
-                                    obj(
-                                            "version" to Version.version,
-                                            "buildDate" to Version.buildDate.toString(),
-                                            "flywayVersion" to Db.flywayVersion,
-                                            "configuredFlywayVersion" to Db.configuredFlywayVerstion,
-                                            "installOn" to Db.installedOn.toString()
-                                    )
-                                }.encodePrettily()
+        .handler { rc ->
+            rc.response().putHeader(CONTENT_TYPE_HEADER, JSON_TYPE)
+                .end(
+                    json {
+                        obj(
+                            "version" to Version.version,
+                            "buildDate" to Version.buildDate.toString(),
+                            "flywayVersion" to Db.flywayVersion,
+                            "configuredFlywayVersion" to Db.configuredFlywayVerstion,
+                            "installOn" to Db.installedOn.toString()
                         )
-            }
+                    }.encodePrettily()
+                )
+        }
     return router
 }

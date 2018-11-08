@@ -36,57 +36,57 @@ object LoginActions {
     val PASSWORD = "password"
     val ID = "id"
 
-    fun prepareNewLogin(login : JsonObject) : JsonObject {
-        val hashed = BCrypt.hashpw( login[PASSWORD], BCrypt.gensalt() )
-        login.put(PASSWORD, hashed )
+    fun prepareNewLogin(login: JsonObject): JsonObject {
+        val hashed = BCrypt.hashpw(login[PASSWORD], BCrypt.gensalt())
+        login.put(PASSWORD, hashed)
         return login
     }
 
 
-    fun validateNewLogin(login: JsonObject ) {
+    fun validateNewLogin(login: JsonObject) {
 
-        val validator = JsonValidator( login )
-        validator.forProperty { it.getString( ID ) } rules {
-            length( min = 1, max = 100 )
+        val validator = JsonValidator(login)
+        validator.forProperty { it.getString(ID) } rules {
+            length(min = 1, max = 100)
         } onError {
-            errorMessage( "Login ID must be between 1 and 100 characters")
+            errorMessage("Login ID must be between 1 and 100 characters")
         }
-        validator.forProperty { it.getString( PASSWORD ) } rules {
-            length( min = 1, max = 100 )
+        validator.forProperty { it.getString(PASSWORD) } rules {
+            length(min = 1, max = 100)
         } onError {
-            errorMessage( "password must be between 1 and 100 characters")
+            errorMessage("password must be between 1 and 100 characters")
         }
 
-        ValidationException( "new login validatio" ).validate( validator )
+        ValidationException("new login validatio").validate(validator)
 
     }
 
-    fun createLogin( login : JsonObject ) : Single<Login> {
-        return Single.just( login )
-                .map {
-                    validateNewLogin( it )
-                    prepareNewLogin( it )
-                }
-                .flatMap {
-                    LoginDao.createLogin( it[ID], it[PASSWORD] )
-                }
+    fun createLogin(login: JsonObject): Single<Login> {
+        return Single.just(login)
+            .map {
+                validateNewLogin(it)
+                prepareNewLogin(it)
+            }
+            .flatMap {
+                LoginDao.createLogin(it[ID], it[PASSWORD])
+            }
     }
 
     /**
      * Gets a login, checks the password, and records the result.
      * The result will not have the lastSuccessfulLogin or lastFailedLogin in it.
      */
-    fun checkLogin( id: String, password : String ) : Maybe<Login> {
-        return getLogin( id )
-                .flatMap { login ->
-                    val now = OffsetDateTime.now()
-                    if (! (BCrypt.checkpw(password, login.password) && login.enabled )  ) {
-                        setLoginData(id, arrayOf("lastFailedLogin"), "$now" )
-                                .flatMapMaybe { Maybe.empty<Login>() }
-                    } else {
-                        setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now" )
-                                .flatMapMaybe { Maybe.just(login) }
-                    }
+    fun checkLogin(id: String, password: String): Maybe<Login> {
+        return getLogin(id)
+            .flatMap { login ->
+                val now = OffsetDateTime.now()
+                if (!(BCrypt.checkpw(password, login.password) && login.enabled)) {
+                    setLoginData(id, arrayOf("lastFailedLogin"), "$now")
+                        .flatMapMaybe { Maybe.empty<Login>() }
+                } else {
+                    setLoginData(id, arrayOf("lastSuccessfulLogin"), "$now")
+                        .flatMapMaybe { Maybe.just(login) }
                 }
+            }
     }
 }

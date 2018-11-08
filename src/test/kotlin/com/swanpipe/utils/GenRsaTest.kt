@@ -20,15 +20,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.RepeatedTest
 
-@DisplayName( "Test RSA Generation" )
+@DisplayName("Test RSA Generation")
 object GenRsaTest {
 
-    @DisplayName( "Test RSA 2048 Keypair generation" )
-    @RepeatedTest( 10 )
+    @DisplayName("Test RSA 2048 Keypair generation")
+    @RepeatedTest(10)
     fun testGenRsa2048() {
         val pair = genRsa2048()
-        assertThat( pair.first ).startsWith( "-----BEGIN PUBLIC KEY-----\n")
-        assertThat( pair.first ).endsWith( "\n-----END PUBLIC KEY-----")
+        assertThat(pair.first).startsWith("-----BEGIN PUBLIC KEY-----\n")
+        assertThat(pair.first).endsWith("\n-----END PUBLIC KEY-----")
     }
 
 }

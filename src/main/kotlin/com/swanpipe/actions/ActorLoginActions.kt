@@ -24,33 +24,34 @@ object ActorLoginActions {
 
     val OWNER = "owner"
 
-    fun prepareNewActorLogin( actorLogin: JsonObject ) : JsonObject {
-        actorLogin.getBoolean( OWNER )?: kotlin.run {
-            actorLogin.put( OWNER, true )
+    fun prepareNewActorLogin(actorLogin: JsonObject): JsonObject {
+        actorLogin.getBoolean(OWNER) ?: kotlin.run {
+            actorLogin.put(OWNER, true)
         }
-        actorLogin.getString( ActorActions.PUN ) ?: run {
-            actorLogin.put( ActorActions.PUN, actorLogin.getString( LoginActions.ID ))
+        actorLogin.getString(ActorActions.PUN) ?: run {
+            actorLogin.put(ActorActions.PUN, actorLogin.getString(LoginActions.ID))
         }
         return actorLogin
     }
 
-    fun createActorLogin(actorLogin: JsonObject ) : Single<Triple<String,String,Boolean>> {
-        return Single.just( actorLogin )
-                .map {
-                    prepareNewActorLogin( it )
-                    ActorActions.validateNewActor( it )
-                    LoginActions.validateNewLogin( it )
-                    LoginActions.prepareNewLogin( it )
-                    ActorActions.prepareNewActor( it )
-                }
-                .flatMap {
-                    ActorLoginDao.createActorLogin(
-                            it.first.getString( LoginActions.ID ),
-                            it.first.getString( LoginActions.PASSWORD ),
-                            it.first.getString( ActorActions.PUN ),
-                            it.first.getBoolean( OWNER ),
-                            it.second )
-                }
+    fun createActorLogin(actorLogin: JsonObject): Single<Triple<String, String, Boolean>> {
+        return Single.just(actorLogin)
+            .map {
+                prepareNewActorLogin(it)
+                ActorActions.validateNewActor(it)
+                LoginActions.validateNewLogin(it)
+                LoginActions.prepareNewLogin(it)
+                ActorActions.prepareNewActor(it)
+            }
+            .flatMap {
+                ActorLoginDao.createActorLogin(
+                    it.first.getString(LoginActions.ID),
+                    it.first.getString(LoginActions.PASSWORD),
+                    it.first.getString(ActorActions.PUN),
+                    it.first.getBoolean(OWNER),
+                    it.second
+                )
+            }
     }
 
 }

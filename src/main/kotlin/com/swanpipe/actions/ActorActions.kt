@@ -35,32 +35,32 @@ object ActorActions {
     val PUN = "pun"
     private val PUN_REGEX = Pattern.compile(PUN_CHARS)
 
-    fun prepareNewActor( actor: JsonObject ) : Pair<JsonObject, Pair<String,Buffer>> {
+    fun prepareNewActor(actor: JsonObject): Pair<JsonObject, Pair<String, Buffer>> {
         val keypair = genRsa2048()
-        return Pair( actor, keypair )
+        return Pair(actor, keypair)
     }
 
-    fun validateNewActor(actor: JsonObject ) {
+    fun validateNewActor(actor: JsonObject) {
 
-        val validator = JsonValidator( actor )
-        validator.forProperty { it.getString( PUN ) } rules {
-            length( min=1, max = 15 )
-            pattern( PUN_REGEX )
+        val validator = JsonValidator(actor)
+        validator.forProperty { it.getString(PUN) } rules {
+            length(min = 1, max = 15)
+            pattern(PUN_REGEX)
         } onError {
-            errorMessage( "preferred user names (pun) cannot be more than 15 characters or contain spaces or special characters")
+            errorMessage("preferred user names (pun) cannot be more than 15 characters or contain spaces or special characters")
         }
 
     }
 
-    fun createActor( actor: JsonObject ) : Single<Actor> {
-        return Single.just( actor )
-                .map {
-                    validateNewActor( actor )
-                    prepareNewActor( actor )
-                }
-                .flatMap {
-                    ActorDao.createActor( it.first.getString( PUN ), it.second )
-                }
+    fun createActor(actor: JsonObject): Single<Actor> {
+        return Single.just(actor)
+            .map {
+                validateNewActor(actor)
+                prepareNewActor(actor)
+            }
+            .flatMap {
+                ActorDao.createActor(it.first.getString(PUN), it.second)
+            }
     }
 
 }

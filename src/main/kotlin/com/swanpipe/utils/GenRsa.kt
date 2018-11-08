@@ -21,20 +21,20 @@ import java.security.KeyPairGenerator
 import java.util.*
 
 object RsaGen {
-    val kpg = KeyPairGenerator.getInstance( "RSA" )
+    val kpg = KeyPairGenerator.getInstance("RSA")
 
     init {
-        kpg.initialize( 2048 )
+        kpg.initialize(2048)
     }
 }
 
-fun genRsa2048() : Pair<String, Buffer> {
+fun genRsa2048(): Pair<String, Buffer> {
     val kp = RsaGen.kpg.genKeyPair()
     val publicPem =
-            "-----BEGIN PUBLIC KEY-----\n" +
-                    Base64.getMimeEncoder().encodeToString( kp.public.encoded ) +
-                    "\n-----END PUBLIC KEY-----"
-    val private = Buffer.buffer( kp.private.encoded )
-    return Pair( publicPem, private )
+        "-----BEGIN PUBLIC KEY-----\n" +
+                Base64.getMimeEncoder().encodeToString(kp.public.encoded) +
+                "\n-----END PUBLIC KEY-----"
+    val private = Buffer.buffer(kp.private.encoded)
+    return Pair(publicPem, private)
 }
 

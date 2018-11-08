@@ -26,94 +26,94 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of actor daos" )
-@ExtendWith( VertxExtension::class )
+@DisplayName("Test of actor daos")
+@ExtendWith(VertxExtension::class)
 object ActorDaoTest {
 
-    @DisplayName( "Prepare the database" )
+    @DisplayName("Prepare the database")
     @BeforeAll
     @JvmStatic
-    fun prepare( testContext: VertxTestContext) {
+    fun prepare(testContext: VertxTestContext) {
         InitPg.startPg()
         testContext.completeNow()
     }
 
-    @DisplayName( "close database" )
+    @DisplayName("close database")
     @AfterAll
     @JvmStatic
-    fun cleanUp( testContext: VertxTestContext ) {
+    fun cleanUp(testContext: VertxTestContext) {
         Db.pgPool.close()
         testContext.completeNow()
     }
 
-    @DisplayName( "Setup data" )
+    @DisplayName("Setup data")
     @BeforeEach
-    fun prepareEach( testContext: VertxTestContext ) {
+    fun prepareEach(testContext: VertxTestContext) {
         InitPg.clean().migrate()
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create actor" )
+    @DisplayName("Test create actor")
     @Test
-    fun testCreateActor(vertx : Vertx, testContext: VertxTestContext) {
+    fun testCreateActor(vertx: Vertx, testContext: VertxTestContext) {
 
-        InitPg.pool( vertx )
+        InitPg.pool(vertx)
         val keypair = genRsa2048()
-        ActorDao.createActor( "fugly", keypair )
-                .flatMap { actor ->
-                    assertThat( actor.pun ).isEqualTo( "fugly" )
-                    ActorDao.getActor( actor.pun ).toSingle()
-                }
-                .subscribe(
-                        { actor ->
-                            testContext.verify {
-                                assertThat(actor.pun).isEqualTo("fugly")
-                                assertThat(actor.publicKeyPem).isNotBlank()
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow(it)
-                        }
-                )
-    }
-
-    @DisplayName( "Test non existent actor" )
-    @Test
-    fun testNonExistentActor( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        ActorDao.getActor( "nobody" )
-                .subscribe(
-                        { _ ->
-                            testContext.verify {
-                                fail( "got back a result")
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow( it )
-                        },
-                        {
-                            testContext.completeNow()
-                        }
-                )
-    }
-
-    @DisplayName( "Test set actor data" )
-    @Test
-    fun testSetActorData( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        val keypair = genRsa2048()
-        ActorDao.createActor( "foo", keypair )
-                .flatMap { actor ->
-                   ActorDao.setActorData( actor.pun, arrayOf( "name" ), "a fun user" )
-                }
-                .subscribe { data ->
+        ActorDao.createActor("fugly", keypair)
+            .flatMap { actor ->
+                assertThat(actor.pun).isEqualTo("fugly")
+                ActorDao.getActor(actor.pun).toSingle()
+            }
+            .subscribe(
+                { actor ->
                     testContext.verify {
-                        assertThat( data.getString( "name") ).isEqualTo( "a fun user" )
+                        assertThat(actor.pun).isEqualTo("fugly")
+                        assertThat(actor.publicKeyPem).isNotBlank()
                     }
                     testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
                 }
+            )
+    }
+
+    @DisplayName("Test non existent actor")
+    @Test
+    fun testNonExistentActor(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        ActorDao.getActor("nobody")
+            .subscribe(
+                { _ ->
+                    testContext.verify {
+                        fail("got back a result")
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
+                },
+                {
+                    testContext.completeNow()
+                }
+            )
+    }
+
+    @DisplayName("Test set actor data")
+    @Test
+    fun testSetActorData(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        val keypair = genRsa2048()
+        ActorDao.createActor("foo", keypair)
+            .flatMap { actor ->
+                ActorDao.setActorData(actor.pun, arrayOf("name"), "a fun user")
+            }
+            .subscribe { data ->
+                testContext.verify {
+                    assertThat(data.getString("name")).isEqualTo("a fun user")
+                }
+                testContext.completeNow()
+            }
     }
 
 }

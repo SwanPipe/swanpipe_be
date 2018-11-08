@@ -34,40 +34,41 @@ class Ssh : AbstractVerticle() {
 
     override fun start() {
 
-        val host = config().getJsonObject( SSH_CONFIG_NAME ).getString( "host", "localhost" )
-        val port = config().getJsonObject( SSH_CONFIG_NAME ).getInteger( "port", 5000 )
+        val host = config().getJsonObject(SSH_CONFIG_NAME).getString("host", "localhost")
+        val port = config().getJsonObject(SSH_CONFIG_NAME).getInteger("port", 5000)
 
-        registerTermCommands( vertx )
+        registerTermCommands(vertx)
 
         val sshConfig = json {
-            obj("sshOptions" to obj(
+            obj(
+                "sshOptions" to obj(
                     "host" to host,
                     "port" to port,
                     "keyPairOptions" to obj(
-                            "path" to "src/main/resources/ssh.jks",
-                            "password" to "secret"
+                        "path" to "src/main/resources/ssh.jks",
+                        "password" to "secret"
                     ),
                     "authOptions" to obj(
-                            "provider" to "shiro",
-                            "config" to obj("properties_path" to "file:src/main/resources/auth.properties")
+                        "provider" to "shiro",
+                        "config" to obj("properties_path" to "file:src/main/resources/auth.properties")
                     )
-            ))
+                )
+            )
         }
 
         val options = ShellServiceOptions()
-        ShellServiceOptionsConverter.fromJson( sshConfig, options )
-        val service = ShellService.create(vertx, options )
+        ShellServiceOptionsConverter.fromJson(sshConfig, options)
+        val service = ShellService.create(vertx, options)
         service.start { ar ->
             if (!ar.succeeded()) {
                 ar.cause().printStackTrace()
-            }
-            else {
+            } else {
                 logger.info { "SSH admin service started on ${host}:${port}" }
             }
         }
     }
 
-    fun registerTermCommands( vertx: Vertx) {
+    fun registerTermCommands(vertx: Vertx) {
         CommandRegistry.getShared(vertx).registerCommand(CreateActorLogin().command(vertx))
         CommandRegistry.getShared(vertx).registerCommand(CheckLogin().command(vertx))
         CommandRegistry.getShared(vertx).registerCommand(EnableLogin().command(vertx))

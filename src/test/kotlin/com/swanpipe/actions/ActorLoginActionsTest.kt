@@ -26,55 +26,55 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 
-@DisplayName( "Test of actor login actions" )
-@ExtendWith( VertxExtension::class )
+@DisplayName("Test of actor login actions")
+@ExtendWith(VertxExtension::class)
 object ActorLoginActionsTest {
 
-    @DisplayName( "Prepare the database" )
+    @DisplayName("Prepare the database")
     @BeforeAll
     @JvmStatic
-    fun prepare( testContext: VertxTestContext) {
+    fun prepare(testContext: VertxTestContext) {
         InitPg.startPg()
         testContext.completeNow()
     }
 
-    @DisplayName( "close database" )
+    @DisplayName("close database")
     @AfterAll
     @JvmStatic
-    fun cleanUp( testContext: VertxTestContext ) {
+    fun cleanUp(testContext: VertxTestContext) {
         Db.pgPool.close()
         testContext.completeNow()
     }
 
-    @DisplayName( "Setup data" )
+    @DisplayName("Setup data")
     @BeforeEach
-    fun prepareEach( testContext: VertxTestContext ) {
+    fun prepareEach(testContext: VertxTestContext) {
         InitPg.clean().migrate()
         testContext.completeNow()
     }
 
-    @DisplayName( "Test create actor login action" )
+    @DisplayName("Test create actor login action")
     @Test
-    fun testCreateActor( vertx: Vertx, testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
+    fun testCreateActor(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
         val json = JsonObject()
-                .put( "id", "foo" )
-                .put( "password", "secret" )
-                .put( "pun", "bar" )
-        ActorLoginActions.createActorLogin( json )
-                .subscribe(
-                        { triple ->
-                            testContext.verify {
-                                assertThat(triple.first).isEqualTo( "foo" )
-                                assertThat(triple.second).isEqualTo( "bar" )
-                                assertThat(triple.third).isTrue()
-                            }
-                            testContext.completeNow()
-                        },
-                        {
-                            testContext.failNow(it)
-                        }
-                )
+            .put("id", "foo")
+            .put("password", "secret")
+            .put("pun", "bar")
+        ActorLoginActions.createActorLogin(json)
+            .subscribe(
+                { triple ->
+                    testContext.verify {
+                        assertThat(triple.first).isEqualTo("foo")
+                        assertThat(triple.second).isEqualTo("bar")
+                        assertThat(triple.third).isTrue()
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
+                }
+            )
     }
 
 }

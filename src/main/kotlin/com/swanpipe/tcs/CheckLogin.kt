@@ -28,35 +28,35 @@ class CheckLogin {
 
     companion object : KLogging()
 
-    val cli = CLI.create( "check-login" )
-            .setSummary( "Checks that a login is working" )
-            .addOption( Option( argName="Login ID", shortName = "l", longName = "login-id", required = true ) )
-            .addOption( Option( argName="Password", shortName = "p", longName = "password", required = true ) )
-            .addOption( Option( argName = "help", shortName = "h", longName = "help", flag = true, help = true ) )
+    val cli = CLI.create("check-login")
+        .setSummary("Checks that a login is working")
+        .addOption(Option(argName = "Login ID", shortName = "l", longName = "login-id", required = true))
+        .addOption(Option(argName = "Password", shortName = "p", longName = "password", required = true))
+        .addOption(Option(argName = "help", shortName = "h", longName = "help", flag = true, help = true))
 
-    fun command( vertx: Vertx ) : Command {
-        return CommandBuilder.command( cli )
-                .processHandler { process ->
-                    val commandLine = process.commandLine()
-                    val loginId = commandLine.getOptionValue<String>( "login-id" )
-                    val password = commandLine.getOptionValue<String>( "password" )
-                    LoginActions.checkLogin( loginId, password)
-                            .subscribe(
-                                    {
-                                        process.write( "Password matches for '${loginId}'\n")
-                                        process.end()
-                                    },
-                                    {
-                                        logger.error { it }
-                                        process.write( "Error checking login: ${it.message}\n")
-                                        process.end()
-                                    },
-                                    {
-                                        process.write( "Password '${password}' does not match for '${loginId}' or login is disabled\n")
-                                        process.end()
-                                    }
-                            )
-                }
-                .build( vertx )
+    fun command(vertx: Vertx): Command {
+        return CommandBuilder.command(cli)
+            .processHandler { process ->
+                val commandLine = process.commandLine()
+                val loginId = commandLine.getOptionValue<String>("login-id")
+                val password = commandLine.getOptionValue<String>("password")
+                LoginActions.checkLogin(loginId, password)
+                    .subscribe(
+                        {
+                            process.write("Password matches for '${loginId}'\n")
+                            process.end()
+                        },
+                        {
+                            logger.error { it }
+                            process.write("Error checking login: ${it.message}\n")
+                            process.end()
+                        },
+                        {
+                            process.write("Password '${password}' does not match for '${loginId}' or login is disabled\n")
+                            process.end()
+                        }
+                    )
+            }
+            .build(vertx)
     }
 }

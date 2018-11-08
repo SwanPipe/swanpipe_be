@@ -22,18 +22,17 @@ import io.vertx.core.json.JsonObject
 import mu.KLogging
 import java.io.File
 
-fun main( args: Array<String> ) {
+fun main(args: Array<String>) {
 
-    println( "starting...." )
-    val config = File( "src/main/resources/default-config.json").readText()
+    println("starting....")
+    val config = File("src/main/resources/default-config.json").readText()
     val vertx = Vertx.vertx()
-    val options = DeploymentOptions().setConfig( JsonObject( config ) )
-    vertx.deployVerticle( Main::class.java.name, options ) { ar ->
-        if( ar.succeeded() ) {
-            KLogging().logger.info ( "Deployment of ${ar.result()} succeeded")
-        }
-        else {
-            KLogging().logger.error ( "Unable to deploy SwanPipe main verticle: ${ar.cause()}")
+    val options = DeploymentOptions().setConfig(JsonObject(config))
+    vertx.deployVerticle(Main::class.java.name, options) { ar ->
+        if (ar.succeeded()) {
+            KLogging().logger.info("Deployment of ${ar.result()} succeeded")
+        } else {
+            KLogging().logger.error("Unable to deploy SwanPipe main verticle: ${ar.cause()}")
             vertx.close()
         }
     }

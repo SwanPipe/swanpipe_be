@@ -24,10 +24,10 @@ import io.vertx.core.buffer.Buffer
 
 object ActorLoginDao {
 
-    fun linkActorLogin( loginId: String, pun : String, owner: Boolean ) : Single<Triple<String, String, Boolean>> {
-        return PgClient( Db.pgPool )
-                .rxPreparedQuery(
-                        """insert into ${table("login_actor_link")}
+    fun linkActorLogin(loginId: String, pun: String, owner: Boolean): Single<Triple<String, String, Boolean>> {
+        return PgClient(Db.pgPool)
+            .rxPreparedQuery(
+                """insert into ${table("login_actor_link")}
                         | ( login_id, pun, owner )
                         | values
                         | ( $1, $2, $3 )
@@ -35,25 +35,27 @@ object ActorLoginDao {
                         | do update set owner = $3
                         | returning login_id, pun, owner
                     """.trimMargin(),
-                        Tuple.of( loginId, pun, owner )
+                Tuple.of(loginId, pun, owner)
+            )
+            .map { pgRowSet ->
+                val row = pgRowSet.iterator().next()
+                Triple(
+                    row.getString("login_id"),
+                    row.getString("pun"),
+                    row.getBoolean("owner")
                 )
-                .map { pgRowSet ->
-                    val row = pgRowSet.iterator().next()
-                    Triple( row.getString( "login_id"),
-                            row.getString( "pun" ),
-                            row.getBoolean( "owner" ) )
-                }
+            }
     }
 
     fun createActorLogin(
-            loginId: String,
-            password : String,
-            pun: String,
-            owner: Boolean,
-            keypair: Pair<String, Buffer>
-    ) : Single<Triple<String, String, Boolean>> {
+        loginId: String,
+        password: String,
+        pun: String,
+        owner: Boolean,
+        keypair: Pair<String, Buffer>
+    ): Single<Triple<String, String, Boolean>> {
         return PgClient(Db.pgPool).rxPreparedQuery(
-                """
+            """
                 with login_insert as (
                 insert into ${table("login")}
                         ( id, password )
@@ -70,15 +72,17 @@ object ActorLoginDao {
                         ( $1, $3, $6 )
                 returning login_id, pun, owner
             """.trimIndent(),
-                Tuple.of( loginId, password, pun, keypair.first, keypair.second )
-                        .addBoolean( owner )
+            Tuple.of(loginId, password, pun, keypair.first, keypair.second)
+                .addBoolean(owner)
         )
-                .map { pgRowSet ->
-                    val row = pgRowSet.iterator().next()
-                    Triple(row.getString("login_id"),
-                            row.getString("pun"),
-                            row.getBoolean("owner"))
-                }
+            .map { pgRowSet ->
+                val row = pgRowSet.iterator().next()
+                Triple(
+                    row.getString("login_id"),
+                    row.getString("pun"),
+                    row.getBoolean("owner")
+                )
+            }
     }
 
 }
