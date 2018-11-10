@@ -36,25 +36,17 @@ object Db {
 
     lateinit var configuredFlywayVerstion: String
 
-    //TODO refactor so schema is its own variable for performance reasons
-    fun schema(): String? {
-        if (isConfigured()) {
-            return dbConfig.getString(SCHEMA_CONFIG_NAME)
-        }
-        return null
-    }
+    lateinit var schema : String
 
-    fun table(name: String): String? {
-        if (isConfigured()) {
-            return "${schema()}.${name}"
-        }
-        return null
+    fun table(name: String): String {
+        return "${schema}.${name}"
     }
 
     fun isConfigured(): Boolean {
         return config?.let { _ ->
             if (config!!.getJsonObject(DB_CONFIG_NAME) != null) {
                 dbConfig = config!!.getJsonObject(DB_CONFIG_NAME)
+                schema = dbConfig.getString( SCHEMA_CONFIG_NAME )
                 true
             } else {
                 false
