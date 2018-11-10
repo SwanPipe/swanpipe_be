@@ -20,15 +20,16 @@ import com.swanpipe.daos.Actor
 import com.swanpipe.daos.ActorDao
 import com.swanpipe.utils.ACTIVITY_JSON_TYPE
 import com.swanpipe.utils.CONTENT_TYPE_HEADER
+import com.swanpipe.utils.HttpInfo.here
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.array
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.web.Router
+import io.vertx.reactivex.ext.web.RoutingContext
 
-// TODO put inside an activitypub router
-// TODO have activity pub router use responsecontexthandler
+// TODO test put inside an activitypub router
 fun actorRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
 
@@ -41,8 +42,7 @@ fun actorRouter(vertx: Vertx): Router {
                 .subscribe(
                     { actor ->
                         rc.response()
-                            .putHeader(CONTENT_TYPE_HEADER, ACTIVITY_JSON_TYPE)
-                            .end(constructorActorAP(actor).encodePrettily())
+                            .end(constructorActorAP(actor,rc).encodePrettily())
                     },
                     {
                         rc.response()
@@ -69,7 +69,6 @@ fun actorRouter(vertx: Vertx): Router {
                 .subscribe(
                     { actor ->
                         rc.response()
-                            .putHeader(CONTENT_TYPE_HEADER, "text/html")
                             .end("<html><body><h1>${actor.pun}</h1></body></html>")
                     },
                     {
@@ -90,21 +89,21 @@ fun actorRouter(vertx: Vertx): Router {
     return router
 }
 
-fun constructorActorAP(actor: Actor): JsonObject {
+fun constructorActorAP(actor: Actor, rc : RoutingContext ): JsonObject {
     return json {
         obj(
             "@context" to array(
                 "https://www.w3.org/ns/activitystreams",
                 "https://w3id.org/security/v1"
             ),
-            // TODO construct valid host parts in urls
-            "id" to "http://localhost/users/${actor.pun}",
+            // TODO test construct valid host parts in urls
+            "id" to "${here( rc )}/${actor.pun}",
             "type" to "Person",
             "preferredUserName" to actor.pun,
-            "inbox" to "https://localhost/users/${actor.pun}/inbox",
+            "inbox" to "${here( rc )}/${actor.pun}/inbox",
             "publicKey" to obj(
-                "id" to "https://localhost/users/${actor.pun}#main-key",
-                "owner" to "http://localhost/users/${actor.pun}",
+                "id" to "${here( rc )}/${actor.pun}#main-key",
+                "owner" to "${here( rc )}/${actor.pun}",
                 "publicKeyPem" to actor.publicKeyPem
             )
         )

@@ -17,32 +17,35 @@
 package com.swanpipe.routers
 
 import com.swanpipe.utils.Db
-import com.swanpipe.utils.Version
-import com.swanpipe.utils.CONTENT_TYPE_HEADER
 import com.swanpipe.utils.JSON_TYPE
+import com.swanpipe.utils.Version
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.web.Router
+import io.vertx.reactivex.ext.web.handler.ResponseContentTypeHandler
 
 
-//TODO use response content handler
+//TODO test use response content handler
 fun apiRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
+    router.route().handler( ResponseContentTypeHandler.create() )
     router.get("/v1/instance")
-        .handler { rc ->
-            rc.response().putHeader(CONTENT_TYPE_HEADER, JSON_TYPE)
-                .end(
-                    json {
-                        obj(
-                            "version" to Version.version,
-                            "buildDate" to Version.buildDate.toString(),
-                            "flywayVersion" to Db.flywayVersion,
-                            "configuredFlywayVersion" to Db.configuredFlywayVerstion,
-                            "installOn" to Db.installedOn.toString()
+            .produces(JSON_TYPE)
+            .handler { rc ->
+                rc.response()
+                        //.putHeader(CONTENT_TYPE_HEADER, JSON_TYPE)
+                        .end(
+                                json {
+                                    obj(
+                                            "version" to Version.version,
+                                            "buildDate" to Version.buildDate.toString(),
+                                            "flywayVersion" to Db.flywayVersion,
+                                            "configuredFlywayVersion" to Db.configuredFlywayVerstion,
+                                            "installOn" to Db.installedOn.toString()
+                                    )
+                                }.encodePrettily()
                         )
-                    }.encodePrettily()
-                )
-        }
+            }
     return router
 }
