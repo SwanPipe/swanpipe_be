@@ -27,7 +27,7 @@ import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.web.Router
 
-fun usersRouter(vertx: Vertx): Router {
+fun actorRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
 
     router.get("/:pun")

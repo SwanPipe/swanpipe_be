@@ -17,7 +17,7 @@ package com.swanpipe.verticles
 
 import com.swanpipe.actions.PUN_CHARS
 import com.swanpipe.routers.apiRouter
-import com.swanpipe.routers.usersRouter
+import com.swanpipe.routers.actorRouter
 import io.vertx.core.Future
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.http.HttpServerOptions
@@ -52,7 +52,7 @@ class Http : AbstractVerticle() {
         val router = Router.router(vertx)
 
         router.mountSubRouter("/api", apiRouter(vertx))
-        router.mountSubRouter("/users", usersRouter(vertx))
+        router.mountSubRouter("/users", actorRouter(vertx))
 
         router.routeWithRegex("/@(${PUN_CHARS})")
             .handler { rc ->
