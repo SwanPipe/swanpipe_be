@@ -16,6 +16,7 @@
 package com.swanpipe.verticles
 
 import com.swanpipe.actions.PUN_CHARS
+import com.swanpipe.routers.activityPubRouter
 import com.swanpipe.routers.apiRouter
 import com.swanpipe.routers.actorRouter
 import com.swanpipe.utils.DEFAULT_HOST
@@ -43,14 +44,14 @@ class HttpVerticle : AbstractVerticle() {
         val router = Router.router(vertx)
 
         router.mountSubRouter("/api", apiRouter(vertx))
-        router.mountSubRouter("/users", actorRouter(vertx))
+        router.mountSubRouter("/ap", activityPubRouter(vertx))
 
         router.routeWithRegex("/@(${PUN_CHARS})")
             .handler { rc ->
                 val pun = rc.request().getParam("param0")
                 rc.response()
                     .setStatusCode(303)
-                    .putHeader("Location", "/users/${pun}")
+                    .putHeader("Location", "/ap/actors/${pun}")
                     .end()
             }
 

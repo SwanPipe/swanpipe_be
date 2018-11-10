@@ -58,7 +58,7 @@ object HttpInfo {
     fun here( rc : RoutingContext ) : String {
         val mountPoint : String? = rc.mountPoint()
         mountPoint?.let {
-            return "${rc.request().scheme()}://${host}:${port}/${mountPoint}"
+            return "${rc.request().scheme()}://${host}:${port}${mountPoint}"
         }
         return "${rc.request().scheme()}://${host}:${port}"
     }

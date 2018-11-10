@@ -26,7 +26,6 @@ import io.vertx.reactivex.ext.web.Router
 import io.vertx.reactivex.ext.web.handler.ResponseContentTypeHandler
 
 
-//TODO test use response content handler
 fun apiRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
     router.route().handler( ResponseContentTypeHandler.create() )

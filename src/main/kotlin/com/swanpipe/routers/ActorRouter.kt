@@ -19,7 +19,6 @@ package com.swanpipe.routers
 import com.swanpipe.daos.Actor
 import com.swanpipe.daos.ActorDao
 import com.swanpipe.utils.ACTIVITY_JSON_TYPE
-import com.swanpipe.utils.CONTENT_TYPE_HEADER
 import com.swanpipe.utils.HttpInfo.here
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.array
@@ -29,7 +28,6 @@ import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.web.Router
 import io.vertx.reactivex.ext.web.RoutingContext
 
-// TODO test put inside an activitypub router
 fun actorRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
 
@@ -53,7 +51,7 @@ fun actorRouter(vertx: Vertx): Router {
                     {
                         rc.response()
                             .setStatusCode(404)
-                            .setStatusMessage("user ${pun} not found")
+                            .setStatusMessage("actor ${pun} not found")
                             .end()
                     }
                 )
@@ -80,7 +78,7 @@ fun actorRouter(vertx: Vertx): Router {
                     {
                         rc.response()
                             .setStatusCode(404)
-                            .setStatusMessage("user ${pun} not found")
+                            .setStatusMessage("actor ${pun} not found")
                             .end()
                     }
                 )
@@ -96,7 +94,6 @@ fun constructorActorAP(actor: Actor, rc : RoutingContext ): JsonObject {
                 "https://www.w3.org/ns/activitystreams",
                 "https://w3id.org/security/v1"
             ),
-            // TODO test construct valid host parts in urls
             "id" to "${here( rc )}/${actor.pun}",
             "type" to "Person",
             "preferredUserName" to actor.pun,

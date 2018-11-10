@@ -22,8 +22,7 @@ import io.vertx.reactivex.ext.web.handler.ResponseContentTypeHandler
 
 fun activityPubRouter( vertx: Vertx) : Router {
     val router = Router.router( vertx )
-    // TODO test have activity pub router use responsecontexthandler
     router.route().handler( ResponseContentTypeHandler.create() )
-    router.mountSubRouter( "/ap", actorRouter( vertx ) )
+    router.mountSubRouter( "/actors", actorRouter( vertx ) )
     return router
 }
