@@ -15,7 +15,7 @@
  */
 package com.swanpipe
 
-import com.swanpipe.verticles.Main
+import com.swanpipe.verticles.MainVerticle
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
     val config = File("src/main/resources/default-config.json").readText()
     val vertx = Vertx.vertx()
     val options = DeploymentOptions().setConfig(JsonObject(config))
-    vertx.deployVerticle(Main::class.java.name, options) { ar ->
+    vertx.deployVerticle(MainVerticle::class.java.name, options) { ar ->
         if (ar.succeeded()) {
             KLogging().logger.info("Deployment of ${ar.result()} succeeded")
         } else {

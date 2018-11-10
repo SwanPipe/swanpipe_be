@@ -34,9 +34,9 @@ import java.time.format.DateTimeParseException
 
 
 /**
- * This is a "Main" verticle. It is used to deploy all other verticles.
+ * This is a "MainVerticle" verticle. It is used to deploy all other verticles.
  */
-class Main : AbstractVerticle() {
+class MainVerticle : AbstractVerticle() {
 
     companion object : KLogging()
 
