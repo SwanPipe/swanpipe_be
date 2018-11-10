@@ -18,6 +18,10 @@ package com.swanpipe.verticles
 import com.swanpipe.actions.PUN_CHARS
 import com.swanpipe.routers.apiRouter
 import com.swanpipe.routers.actorRouter
+import com.swanpipe.utils.DEFAULT_HOST
+import com.swanpipe.utils.DEFAULT_PORT
+import com.swanpipe.utils.HTTP_CONFIG_NAME
+import com.swanpipe.utils.HttpInfo
 import io.vertx.core.Future
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.http.HttpServerOptions
@@ -25,29 +29,16 @@ import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.ext.web.Router
 import mu.KLogging
 
-const val HTTP_CONFIG_NAME = "http"
-const val DEFAULT_PORT = 8080
-const val DEFAULT_HOST = "localhost"
-const val INSTANCES = "instances"
-
-const val ACTIVITY_JSON_TYPE = "application/activity+json"
-const val JSON_TYPE = "application/json"
-
-const val CONTENT_TYPE_HEADER = "Content-Type"
-
-class Http : AbstractVerticle() {
+class HttpVerticle : AbstractVerticle() {
 
     companion object : KLogging()
 
     override fun start(startFuture: Future<Void>) {
 
         val serverOptions = HttpServerOptions()
-        val httpConfig: JsonObject? = config().getJsonObject(HTTP_CONFIG_NAME)
-        httpConfig?.let {
-            serverOptions.logActivity = httpConfig.getBoolean("logActivity", false)
-            serverOptions.port = httpConfig.getInteger("port", DEFAULT_PORT)
-            serverOptions.host = httpConfig.getString("host", DEFAULT_HOST)
-        }
+        serverOptions.logActivity = HttpInfo.logActivity
+        serverOptions.port = HttpInfo.port
+        serverOptions.host = HttpInfo.host
         val server = vertx.createHttpServer(serverOptions)
         val router = Router.router(vertx)
 

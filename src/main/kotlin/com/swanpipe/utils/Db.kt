@@ -36,6 +36,7 @@ object Db {
 
     lateinit var configuredFlywayVerstion: String
 
+    //TODO refactor so schema is its own variable for performance reasons
     fun schema(): String? {
         if (isConfigured()) {
             return dbConfig.getString(SCHEMA_CONFIG_NAME)

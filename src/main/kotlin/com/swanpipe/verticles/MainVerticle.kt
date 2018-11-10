@@ -15,10 +15,9 @@
  */
 package com.swanpipe.verticles
 
-import com.swanpipe.utils.Db
+import com.swanpipe.utils.*
 import com.swanpipe.utils.Db.dbConfig
 import com.swanpipe.utils.Db.table
-import com.swanpipe.utils.Version
 import io.reactiverse.pgclient.PgClient
 import io.reactiverse.pgclient.PgPoolOptions
 import io.reactivex.Single
@@ -44,6 +43,8 @@ class MainVerticle : AbstractVerticle() {
 
         logger.info("configuration: \n${config().encodePrettily()}")
 
+        HttpInfo.configure( config() )
+
         logVersion(vertx)
             .flatMap {
                 dbInit(vertx, config())
@@ -51,20 +52,15 @@ class MainVerticle : AbstractVerticle() {
             .flatMap {
                 config().getJsonObject(SSH_CONFIG_NAME)?.let {
                     val options = DeploymentOptions().setConfig(config())
-                    RxHelper.deployVerticle(io.vertx.reactivex.core.Vertx(vertx), Ssh(), options)
+                    RxHelper.deployVerticle(io.vertx.reactivex.core.Vertx(vertx), SshVerticle(), options)
                 }
                     ?: Single.just("No ssh configuration found. SSH veritcle not deployed")
             }
             .flatMap {
                 logger.info { "verticle deployment: ${it}" }
                 val options = DeploymentOptions().setConfig(config())
-                val httpConfig = config().getJsonObject(HTTP_CONFIG_NAME)
-                if (httpConfig.getInteger(INSTANCES) != null) {
-                    options.instances = httpConfig.getInteger(INSTANCES)
-                } else {
-                    options.instances = Runtime.getRuntime().availableProcessors()
-                }
-                deployVerticle(vertx, Http::class.java.name, options)
+                options.instances = HttpInfo.instances
+                deployVerticle(vertx, HttpVerticle::class.java.name, options)
             }
             .subscribe(
                 {

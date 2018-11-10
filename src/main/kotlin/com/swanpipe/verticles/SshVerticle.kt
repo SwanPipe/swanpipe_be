@@ -28,7 +28,7 @@ import mu.KLogging
 
 const val SSH_CONFIG_NAME = "ssh"
 
-class Ssh : AbstractVerticle() {
+class SshVerticle : AbstractVerticle() {
 
     companion object : KLogging()
 

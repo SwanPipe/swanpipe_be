@@ -18,8 +18,8 @@ package com.swanpipe.routers
 
 import com.swanpipe.daos.Actor
 import com.swanpipe.daos.ActorDao
-import com.swanpipe.verticles.ACTIVITY_JSON_TYPE
-import com.swanpipe.verticles.CONTENT_TYPE_HEADER
+import com.swanpipe.utils.ACTIVITY_JSON_TYPE
+import com.swanpipe.utils.CONTENT_TYPE_HEADER
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.array
 import io.vertx.kotlin.core.json.json
