@@ -25,6 +25,8 @@ import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.web.Router
 
+
+//TODO use response content handler
 fun apiRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
     router.get("/v1/instance")
