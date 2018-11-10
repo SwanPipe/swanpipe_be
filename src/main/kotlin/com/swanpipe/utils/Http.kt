@@ -23,8 +23,10 @@ import io.vertx.reactivex.ext.web.RoutingContext
 const val HTTP_CONFIG_NAME = "http"
 const val DEFAULT_PORT = 8080
 const val DEFAULT_HOST = "localhost"
-const val INSTANCES = "instances"
-const val LOG_ACTIVITY = "logActivity"
+const val INSTANCES_CONFIG = "instances"
+const val PORT_CONFIG = "port"
+const val HOST_CONFIG = "host"
+const val LOG_ACTIVITY_CONFIG = "logActivity"
 
 // Content type stuffs
 const val ACTIVITY_JSON_TYPE = "application/activity+json"
@@ -32,6 +34,7 @@ const val JSON_TYPE = "application/json"
 
 // Header stuffs
 const val CONTENT_TYPE_HEADER = "Content-Type"
+
 
 object HttpInfo {
 
@@ -45,10 +48,10 @@ object HttpInfo {
     fun configure( config : JsonObject ) {
         val httpConfig: JsonObject? = config.getJsonObject(HTTP_CONFIG_NAME)
         httpConfig?.let {
-            logActivity = httpConfig.getBoolean("logActivity", false)
-            port = httpConfig.getInteger("port", DEFAULT_PORT)
-            host = httpConfig.getString("host", DEFAULT_HOST)
-            instances = httpConfig.getInteger( INSTANCES, instances )
+            logActivity = httpConfig.getBoolean( LOG_ACTIVITY_CONFIG, false)
+            port = httpConfig.getInteger(PORT_CONFIG, DEFAULT_PORT)
+            host = httpConfig.getString(HOST_CONFIG, DEFAULT_HOST)
+            instances = httpConfig.getInteger( INSTANCES_CONFIG, instances )
         }
     }
 
