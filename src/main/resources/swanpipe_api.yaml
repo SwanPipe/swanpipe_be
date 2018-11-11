@@ -1,0 +1,15 @@
+openapi: 3.0.1
+info:
+  title: SwanPipe
+  description: API to the SwanPipe Backend
+  version: 1.0.0
+servers:
+- url: 'https://api.example.com'
+paths:
+  /api/v1/actors:
+    get:
+      summary: Returns a list of actors.
+      description: Lists actors that are visible.
+      responses:
+        '200':
+          description: OK
