@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  title: SwanPipe API
+  description: API for the SwanPipe Backend
+  version: 1.0.0
+paths:
+  /login:
+    post:
+      summary: Returns a list of users.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - loginId
+                - password
+              properties:
+                loginId:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string

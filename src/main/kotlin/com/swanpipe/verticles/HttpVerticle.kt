@@ -19,6 +19,7 @@ import com.swanpipe.actions.PUN_CHARS
 import com.swanpipe.routers.activityPubRouter
 import com.swanpipe.routers.apiRouter
 import com.swanpipe.routers.actorRouter
+import com.swanpipe.routers.openApi3Router
 import com.swanpipe.utils.DEFAULT_HOST
 import com.swanpipe.utils.DEFAULT_PORT
 import com.swanpipe.utils.HTTP_CONFIG_NAME
@@ -45,6 +46,7 @@ class HttpVerticle : AbstractVerticle() {
 
         router.mountSubRouter("/api", apiRouter(vertx))
         router.mountSubRouter("/ap", activityPubRouter(vertx))
+        openApi3Router( vertx, router )
 
         router.routeWithRegex("/@(${PUN_CHARS})")
             .handler { rc ->
