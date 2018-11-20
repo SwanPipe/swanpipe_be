@@ -4,6 +4,7 @@
 # * 'gtrp' and 'gtr' create a GET request with or without query parameters;
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+### login as bob
 POST http://localhost:8080/spv1/login
 Content-Type: application/json
 Accept: application/json
@@ -13,9 +14,24 @@ Accept: application/json
   "password": "secret"
 }
 
-### Get request with a header
+### login as foo
+POST http://localhost:8080/spv1/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "loginId": "foo",
+  "password": "secret"
+}
+
+### Get request with a header as bob
 GET http://localhost:8080/spv1/login-account
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IiLCJpc3MiOiJzd2FucGlwZSIsImV4cCI6MTU0NTI1ODk3OSwiaWF0IjoxNTQyNjY2OTc5fQ.G55JwcAmvoflpJg-jD0wBGmB_YQlgzmqPEl-PF66XxE
+Accept: application/json
+
+### Get request with a header as foo
+GET http://localhost:8080/spv1/login-account
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmb28iLCJpc3MiOiJzd2FucGlwZSIsImV4cCI6MTU0NTMyMjgwMSwiaWF0IjoxNTQyNzMwODAxfQ.6R0dJhazjHxbdzj5BEvqJXdgU-feqm9ERzw1CqAqWdA
 Accept: application/json
 
 ###

@@ -16,6 +16,8 @@
 
 package com.swanpipe.routers
 
+import com.swanpipe.actions.LoginActions.checkLogin
+import com.swanpipe.daos.LoginDao.getLogin
 import com.swanpipe.utils.appLogger
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
@@ -24,14 +26,16 @@ import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.kotlin.ext.web.api.contract.RouterFactoryOptions
 import io.vertx.reactivex.core.Vertx
+import io.vertx.reactivex.ext.auth.User
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth
 import io.vertx.reactivex.ext.web.Router
+import io.vertx.reactivex.ext.web.RoutingContext
 import io.vertx.reactivex.ext.web.api.contract.openapi3.OpenAPI3RouterFactory
 import io.vertx.reactivex.ext.web.handler.JWTAuthHandler
 import java.time.OffsetDateTime
 
 
-fun openApi3Router( vertx: Vertx, parent: Router ) {
+fun openApi3Router(vertx: Vertx, parent: Router) {
 
     val jwtAuthConfig = json {
         obj(
@@ -43,53 +47,88 @@ fun openApi3Router( vertx: Vertx, parent: Router ) {
                     )
         )
     }
-    val jwt = JWTAuth.create( vertx, JWTAuthOptions( jwtAuthConfig ) )
+    val jwt = JWTAuth.create(vertx, JWTAuthOptions(jwtAuthConfig))
 
-    OpenAPI3RouterFactory.rxCreate( vertx, "spv1.yaml" )
+    OpenAPI3RouterFactory.rxCreate(vertx, "spv1.yaml")
         .subscribe { rf ->
-            rf.addHandlerByOperationId( "login" ) { rc ->
+            rf.addHandlerByOperationId("login") { rc ->
                 val data = rc.bodyAsJson
-                appLogger.info { "loginId is ${data.getString( "loginId" )} and password is ${data.getString( "password" )}" }
-                rc.response()
-                    .end(
-                        json { obj(
-                            "token" to jwt.generateToken( JsonObject()
-                                .put( "sub", "bob" )
-                                .put( "iss", "swanpipe")
-                                .put( "exp", OffsetDateTime.now().plusMonths( 1 ).toEpochSecond() )
-                            )
-                        ) }.encodePrettily()
+                val loginId = data.getString("loginId")
+                val password = data.getString("password")
+
+                checkLogin(loginId, password)
+                    .subscribe(
+                        { _ ->
+                            appLogger.error { "action=login loginId=${loginId} result=success" }
+                            rc.response()
+                                .end(
+                                    json {
+                                        obj(
+                                            "token" to jwt.generateToken(
+                                                JsonObject()
+                                                    .put("sub", loginId )
+                                                    .put("iss", "swanpipe")
+                                                    .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
+                                            )
+                                        )
+                                    }.encodePrettily()
+                                )
+                        },
+                        { e ->
+                            appLogger.error { "action=login loginId=${loginId} result=error : ${e}" }
+                            rc.response().setStatusCode(500).end()
+                        },
+                        {
+                            appLogger.info { "action=login loginId=${loginId} result=failed" }
+                            rc.response().setStatusCode(401).end()
+                        }
                     )
             }
-            rf.addHandlerByOperationId( "loginAccount" ) { rc ->
-                if( rc.user() != null && rc.user().principal() != null ) {
-                    appLogger.info { "sub is ${rc.user().principal().getString( "sub" )}" }
-                    rc.response()
-                        .end(
-                            json { obj(
-                                "loginId" to rc.user().principal().getString( "sub" ),
-                                "created" to OffsetDateTime.now().toString()
-                            ) }.encodePrettily()
+
+            rf.addHandlerByOperationId("loginAccount") { rc ->
+                rc.user()?.let {
+                    getLogin( loginId( rc ) )
+                        .subscribe(
+                            { login ->
+                                rc.response()
+                                    .end(
+                                        json {
+                                            obj(
+                                                "loginId" to login.id,
+                                                "created" to login.created.toString()
+                                            )
+                                        }.encodePrettily()
+                                    )
+                            },
+                            { e ->
+                                appLogger.error { "action=loginAccount loginId=${loginId(rc)} result=error : ${e}" }
+                                rc.response().setStatusCode(500).end()
+                            },
+                            {
+                                appLogger.info { "action=loginAccount loginId=${loginId(rc)} result=failed" }
+                                rc.response().setStatusCode(404).end()
+                            }
                         )
-                }
-                else {
-                    rc.user()?: appLogger.info( "user not found " )
-                    appLogger.info { "User or principal is not found" }
-                    rc.response()
-                        .setStatusCode( 401 )
-                        .end()
+                } ?: run {
+                    rc.response().setStatusCode(401).end()
                 }
             }
+
             val options = RouterFactoryOptions()
-                .setMountResponseContentTypeHandler( true )
-            val router = rf.setOptions( options ).getRouter()
-            router.route().order( 0 ).handler { rc ->
-                val ah = rc.request().getHeader( "Authorization" )
-                ah?.let{
-                    jwt.rxAuthenticate( json { obj( "jwt" to ah.substring( 7 )) })
+                .setMountResponseContentTypeHandler(true)
+            val router = rf.setOptions(options).getRouter()
+
+            /*
+            This handler checks to see if there is a JWT in the authorization header and if so, attempts to
+            decode it and place the user in the router context
+             */
+            router.route().order(0).handler { rc ->
+                val ah = rc.request().getHeader("Authorization")
+                ah?.let {
+                    jwt.rxAuthenticate(json { obj("jwt" to ah.substring(7)) })
                         .subscribe(
                             { user ->
-                                rc.setUser( user )
+                                rc.setUser(user)
                                 rc.next()
                             },
                             {
@@ -97,11 +136,16 @@ fun openApi3Router( vertx: Vertx, parent: Router ) {
                                 rc.next()
                             }
                         )
-                }?: run {
+                } ?: run {
                     rc.next()
                 }
             }
-            parent.mountSubRouter( "/spv1", router )
+
+            parent.mountSubRouter("/spv1", router)
         }
 
+}
+
+fun loginId( rc : RoutingContext ) : String {
+    return rc.user().principal().getString( "sub" )
 }

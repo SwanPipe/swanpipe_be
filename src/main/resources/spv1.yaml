@@ -8,6 +8,7 @@ paths:
     post:
       summary: Returns a list of users.
       operationId: login
+      security: []
       requestBody:
         content:
           application/json:
@@ -51,7 +52,8 @@ paths:
                   loginId:
                     type: string
                   created:
-                    type: date-time
+                    type: string
+                    description: Human readable date and time of creation
 
 components:
   securitySchemes:
