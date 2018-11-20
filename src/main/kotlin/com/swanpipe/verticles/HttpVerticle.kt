@@ -20,15 +20,14 @@ import com.swanpipe.routers.activityPubRouter
 import com.swanpipe.routers.apiRouter
 import com.swanpipe.routers.actorRouter
 import com.swanpipe.routers.openApi3Router
-import com.swanpipe.utils.DEFAULT_HOST
-import com.swanpipe.utils.DEFAULT_PORT
-import com.swanpipe.utils.HTTP_CONFIG_NAME
-import com.swanpipe.utils.HttpInfo
+import com.swanpipe.utils.*
 import io.vertx.core.Future
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.http.HttpServerOptions
 import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.ext.web.Router
+import io.vertx.reactivex.ext.web.handler.CorsHandler
 import mu.KLogging
 
 class HttpVerticle : AbstractVerticle() {
@@ -43,6 +42,17 @@ class HttpVerticle : AbstractVerticle() {
         serverOptions.host = HttpInfo.host
         val server = vertx.createHttpServer(serverOptions)
         val router = Router.router(vertx)
+
+        router.route().handler( CorsHandler
+            .create( "*" )
+            .allowedMethod( HttpMethod.GET )
+            .allowedMethod( HttpMethod.DELETE )
+            .allowedMethod( HttpMethod.POST )
+            .allowedMethod( HttpMethod.PUT )
+            .allowedMethod( HttpMethod.OPTIONS )
+            .allowedMethod( HttpMethod.HEAD )
+            .allowedHeader( CONTENT_TYPE_HEADER )
+        )
 
         router.mountSubRouter("/api", apiRouter(vertx))
         router.mountSubRouter("/ap", activityPubRouter(vertx))
