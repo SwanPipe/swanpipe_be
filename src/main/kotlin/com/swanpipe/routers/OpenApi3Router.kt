@@ -17,6 +17,7 @@
 package com.swanpipe.routers
 
 import com.swanpipe.utils.appLogger
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.kotlin.core.json.json
@@ -26,6 +27,7 @@ import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth
 import io.vertx.reactivex.ext.web.Router
 import io.vertx.reactivex.ext.web.api.contract.openapi3.OpenAPI3RouterFactory
+import io.vertx.reactivex.ext.web.handler.JWTAuthHandler
 import java.time.OffsetDateTime
 
 
@@ -59,9 +61,46 @@ fun openApi3Router( vertx: Vertx, parent: Router ) {
                         ) }.encodePrettily()
                     )
             }
+            rf.addHandlerByOperationId( "loginAccount" ) { rc ->
+                if( rc.user() != null && rc.user().principal() != null ) {
+                    appLogger.info { "sub is ${rc.user().principal().getString( "sub" )}" }
+                    rc.response()
+                        .end(
+                            json { obj(
+                                "loginId" to rc.user().principal().getString( "sub" ),
+                                "created" to OffsetDateTime.now().toString()
+                            ) }.encodePrettily()
+                        )
+                }
+                else {
+                    rc.user()?: appLogger.info( "user not found " )
+                    appLogger.info { "User or principal is not found" }
+                    rc.response()
+                        .setStatusCode( 401 )
+                        .end()
+                }
+            }
             val options = RouterFactoryOptions()
                 .setMountResponseContentTypeHandler( true )
             val router = rf.setOptions( options ).getRouter()
+            router.route().order( 0 ).handler { rc ->
+                val ah = rc.request().getHeader( "Authorization" )
+                ah?.let{
+                    jwt.rxAuthenticate( json { obj( "jwt" to ah.substring( 7 )) })
+                        .subscribe(
+                            { user ->
+                                rc.setUser( user )
+                                rc.next()
+                            },
+                            {
+                                appLogger.info { "jwt authentication did not authenticate" }
+                                rc.next()
+                            }
+                        )
+                }?: run {
+                    rc.next()
+                }
+            }
             parent.mountSubRouter( "/spv1", router )
         }
 

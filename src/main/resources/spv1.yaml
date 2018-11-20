@@ -33,3 +33,32 @@ paths:
                 properties:
                   token:
                     type: string
+  /login-account:
+    get:
+      summary: Gets information on the login account.
+      operationId: loginAccount
+      responses:
+        200:
+          description: JSON object with login account information
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - loginId
+                  - created
+                properties:
+                  loginId:
+                    type: string
+                  created:
+                    type: date-time
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      in: header
+
+security:
+  - BearerAuth

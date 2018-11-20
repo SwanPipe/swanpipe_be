@@ -13,4 +13,9 @@ Accept: application/json
   "password": "secret"
 }
 
+### Get request with a header
+GET http://localhost:8080/spv1/login-account
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IiLCJpc3MiOiJzd2FucGlwZSIsImV4cCI6MTU0NTI1ODk3OSwiaWF0IjoxNTQyNjY2OTc5fQ.G55JwcAmvoflpJg-jD0wBGmB_YQlgzmqPEl-PF66XxE
+Accept: application/json
+
 ###
