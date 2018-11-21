@@ -34,6 +34,8 @@ const val JSON_TYPE = "application/json"
 
 // Header stuffs
 const val CONTENT_TYPE_HEADER = "Content-Type"
+const val ACCEPT_HEADER = "Accept"
+const val AUTHORIZATION_HEADER = "Authorization"
 
 
 object HttpInfo {

@@ -18,6 +18,7 @@ package com.swanpipe.routers
 
 import com.swanpipe.actions.LoginActions.checkLogin
 import com.swanpipe.daos.LoginDao.getLogin
+import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.appLogger
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
@@ -123,7 +124,7 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
             decode it and place the user in the router context
              */
             router.route().order(0).handler { rc ->
-                val ah = rc.request().getHeader("Authorization")
+                val ah = rc.request().getHeader(AUTHORIZATION_HEADER )
                 ah?.let {
                     jwt.rxAuthenticate(json { obj("jwt" to ah.substring(7)) })
                         .subscribe(

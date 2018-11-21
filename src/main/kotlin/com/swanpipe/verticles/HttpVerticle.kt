@@ -52,6 +52,8 @@ class HttpVerticle : AbstractVerticle() {
             .allowedMethod( HttpMethod.OPTIONS )
             .allowedMethod( HttpMethod.HEAD )
             .allowedHeader( CONTENT_TYPE_HEADER )
+            .allowedHeader( AUTHORIZATION_HEADER )
+            .allowedHeader( ACCEPT_HEADER )
         )
 
         router.mountSubRouter("/api", apiRouter(vertx))
