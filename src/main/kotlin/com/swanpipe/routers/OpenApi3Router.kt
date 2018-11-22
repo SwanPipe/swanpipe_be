@@ -49,68 +49,9 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
 
     OpenAPI3RouterFactory.rxCreate(vertx, "spv1.yaml")
         .subscribe { rf ->
-            rf.addHandlerByOperationId("login") { rc ->
-                val data = rc.bodyAsJson
-                val loginId = data.getString("loginId")
-                val password = data.getString("password")
+            rf.addHandlerByOperationId("login", loginHandler(jwt))
 
-                checkLogin(loginId, password)
-                    .subscribe(
-                        { _ ->
-                            appLogger.error { "action=login loginId=${loginId} result=success" }
-                            rc.response()
-                                .end(
-                                    json {
-                                        obj(
-                                            "token" to jwt.generateToken(
-                                                JsonObject()
-                                                    .put("sub", loginId )
-                                                    .put("iss", "swanpipe")
-                                                    .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
-                                            )
-                                        )
-                                    }.encodePrettily()
-                                )
-                        },
-                        { e ->
-                            appLogger.error { "action=login loginId=${loginId} result=error : ${e}" }
-                            rc.response().setStatusCode(500).end()
-                        },
-                        {
-                            appLogger.info { "action=login loginId=${loginId} result=failed" }
-                            rc.response().setStatusCode(401).end()
-                        }
-                    )
-            }
-
-            rf.addHandlerByOperationId("loginAccount") { rc ->
-                rc.user()?.let {
-                    getLogin( loginId( rc ) )
-                        .subscribe(
-                            { login ->
-                                rc.response()
-                                    .end(
-                                        json {
-                                            obj(
-                                                "loginId" to login.id,
-                                                "created" to login.created.toString()
-                                            )
-                                        }.encodePrettily()
-                                    )
-                            },
-                            { e ->
-                                appLogger.error { "action=loginAccount loginId=${loginId(rc)} result=error : ${e}" }
-                                rc.response().setStatusCode(500).end()
-                            },
-                            {
-                                appLogger.info { "action=loginAccount loginId=${loginId(rc)} result=failed" }
-                                rc.response().setStatusCode(404).end()
-                            }
-                        )
-                } ?: run {
-                    rc.response().setStatusCode(401).end()
-                }
-            }
+            rf.addHandlerByOperationId("loginAccount", loginAccountHandler())
 
             val options = RouterFactoryOptions()
                 .setMountResponseContentTypeHandler(true)
@@ -142,6 +83,73 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
             parent.mountSubRouter("/spv1", router)
         }
 
+}
+
+private fun loginAccountHandler(): (RoutingContext) -> Unit {
+    return { rc ->
+        rc.user()?.let {
+            getLogin(loginId(rc))
+                .subscribe(
+                    { login ->
+                        rc.response()
+                            .end(
+                                json {
+                                    obj(
+                                        "loginId" to login.id,
+                                        "created" to login.created.toString()
+                                    )
+                                }.encodePrettily()
+                            )
+                    },
+                    { e ->
+                        appLogger.error { "action=loginAccount loginId=${loginId(rc)} result=error : ${e}" }
+                        rc.response().setStatusCode(500).end()
+                    },
+                    {
+                        appLogger.info { "action=loginAccount loginId=${loginId(rc)} result=failed" }
+                        rc.response().setStatusCode(404).end()
+                    }
+                )
+        } ?: run {
+            rc.response().setStatusCode(401).end()
+        }
+    }
+}
+
+private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
+    return { rc ->
+        val data = rc.bodyAsJson
+        val loginId = data.getString("loginId")
+        val password = data.getString("password")
+
+        checkLogin(loginId, password)
+            .subscribe(
+                { _ ->
+                    appLogger.info { "action=login loginId=${loginId} result=success" }
+                    rc.response()
+                        .end(
+                            json {
+                                obj(
+                                    "token" to jwt.generateToken(
+                                        JsonObject()
+                                            .put("sub", loginId)
+                                            .put("iss", "swanpipe")
+                                            .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
+                                    )
+                                )
+                            }.encodePrettily()
+                        )
+                },
+                { e ->
+                    appLogger.error { "action=login loginId=${loginId} result=error : ${e}" }
+                    rc.response().setStatusCode(500).end()
+                },
+                {
+                    appLogger.info { "action=login loginId=${loginId} result=failed" }
+                    rc.response().setStatusCode(401).end()
+                }
+            )
+    }
 }
 
 fun loginId( rc : RoutingContext ) : String {
