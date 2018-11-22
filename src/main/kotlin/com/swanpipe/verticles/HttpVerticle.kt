@@ -21,6 +21,7 @@ import com.swanpipe.routers.apiRouter
 import com.swanpipe.routers.actorRouter
 import com.swanpipe.routers.openApi3Router
 import com.swanpipe.utils.*
+import com.swanpipe.utils.HttpInfo.actualPort
 import io.vertx.core.Future
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
@@ -73,8 +74,9 @@ class HttpVerticle : AbstractVerticle() {
             .rxListen()
             .subscribe(
                 {
+                    actualPort = it.actualPort()
                     logger.info {
-                        "Listening on port ${serverOptions.port} and host ${serverOptions.host} with activity logging set to ${serverOptions.logActivity}"
+                        "Listening on port ${serverOptions.port} (actual: ${it.actualPort()}) and host ${serverOptions.host} with activity logging set to ${serverOptions.logActivity}"
                     }
                     startFuture.complete()
                 },

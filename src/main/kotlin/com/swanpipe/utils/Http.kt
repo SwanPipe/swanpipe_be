@@ -21,7 +21,13 @@ import io.vertx.reactivex.ext.web.RoutingContext
 
 // Configuration constants
 const val HTTP_CONFIG_NAME = "http"
+/**
+ * 8080
+ */
 const val DEFAULT_PORT = 8080
+/**
+ * "localhost"
+ */
 const val DEFAULT_HOST = "localhost"
 const val INSTANCES_CONFIG = "instances"
 const val PORT_CONFIG = "port"
@@ -40,9 +46,25 @@ const val AUTHORIZATION_HEADER = "Authorization"
 
 object HttpInfo {
 
+    /**
+     * The host to listen on. Default is [DEFAULT_PORT].
+     */
     var host : String = DEFAULT_HOST
+    /**
+     * The port to listen on. Default is [DEFAULT_PORT].
+     */
     var port : Int = DEFAULT_PORT
+    /**
+     * The actual port being listend on. Differs from [port] when listening on an ephemeral port.
+     */
+    var actualPort : Int = port
+    /**
+     * Log web activity if true.
+     */
     var logActivity = false
+    /**
+     * The number of HTTP verticle instances to deploy. Default is the number of processors available.
+     */
     var instances = Runtime.getRuntime().availableProcessors()
 
     lateinit var config : JsonObject
