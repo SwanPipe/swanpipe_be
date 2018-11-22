@@ -168,5 +168,35 @@ object ActorLoginDaoTest {
             )
     }
 
+    @DisplayName( "Test get Login Actor Link Single Actor" )
+    @Test
+    fun testGetLoginActorLinkSingleActor( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool(vertx)
+        val keypair = genRsa2048()
+        ActorLoginDao.createActorLogin(
+            loginId = "furry",
+            password = "secret",
+            pun = "fuzzy",
+            owner = true,
+            keypair = keypair
+        )
+            .flatMapMaybe {
+                ActorLoginDao.getLoginActorLink( "furry" )
+            }
+            .subscribe(
+                { loginActorLink ->
+                    testContext.verify {
+                        assertThat( loginActorLink.id ).isEqualTo( "furry" )
+                        assertThat( loginActorLink.actors ).isInstanceOf( JsonArray::class.java )
+                        assertThat( loginActorLink.actors.size() ).isEqualTo( 1 )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
+                }
+            )
+    }
+
 }
 
