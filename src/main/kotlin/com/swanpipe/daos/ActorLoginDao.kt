@@ -18,11 +18,39 @@ package com.swanpipe.daos
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import io.reactiverse.reactivex.pgclient.PgClient
+import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
+import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
+import java.time.OffsetDateTime
+
+data class ActorLink (
+    val pun: String,
+    val owner: Boolean
+)
+
+data class LoginActorLink(
+    val id: String,
+    val enabled: Boolean,
+    val created: OffsetDateTime,
+    val data : JsonObject,
+    val actors: JsonArray
+)
 
 object ActorLoginDao {
+
+    fun mapRowToLoginActorLink(row: Row): LoginActorLink {
+        return LoginActorLink(
+            id = row.getString("id"),
+            enabled = row.getBoolean("enabled"),
+            created = row.delegate.getOffsetDateTime("created"),
+            data = row.getJson("data").value() as JsonObject,
+            actors = row.getJson( "json_agg" ).value() as JsonArray
+        )
+    }
 
     fun linkActorLogin(loginId: String, pun: String, owner: Boolean): Single<Triple<String, String, Boolean>> {
         return PgClient(Db.pgPool)
@@ -82,6 +110,42 @@ object ActorLoginDao {
                     row.getString("pun"),
                     row.getBoolean("owner")
                 )
+            }
+    }
+
+    fun getLoginActorLink( id: String ) : Maybe<LoginActorLink> {
+        return PgClient(Db.pgPool)
+            .rxPreparedQuery(
+                """
+                    select
+                        id,
+                        enabled,
+                        created,
+                        data,
+                        json_agg( sub )
+                    from login,
+                        (
+                            select
+                                login_id as "loginId",
+                                pun,
+                                owner
+                            from
+                                login_actor_link
+                            where
+                                login_id = $1
+                        ) sub
+                    where
+                        id=$1
+                    group by login.id;
+                """.trimIndent(),
+                Tuple.of( id )
+            ).flatMapMaybe<LoginActorLink> { pgRowSet ->
+                if (pgRowSet.size() != 0) {
+                    val row = pgRowSet.iterator().next()
+                    Maybe.just(mapRowToLoginActorLink(row))
+                } else {
+                    Maybe.empty()
+                }
             }
     }
 

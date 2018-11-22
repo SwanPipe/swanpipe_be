@@ -19,6 +19,7 @@ import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.genRsa2048
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonArray
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.assertj.core.api.Assertions.assertThat
@@ -88,7 +89,7 @@ object ActorLoginDaoTest {
 
     @DisplayName("Test create login/actor")
     @Test
-    fun createActorLogin(vertx: Vertx, testContext: VertxTestContext) {
+    fun testCreateActorLogin(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         val keypair = genRsa2048()
         ActorLoginDao.createActorLogin(
@@ -121,6 +122,48 @@ object ActorLoginDaoTest {
                 },
                 {
                     testContext.failNow(it)
+                }
+            )
+    }
+
+    @DisplayName( "Test get Login Actor Link" )
+    @Test
+    fun testGetLoginActorLink( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool(vertx)
+        val keypair = genRsa2048()
+        ActorLoginDao.createActorLogin(
+            loginId = "furry",
+            password = "secret",
+            pun = "fuzzy",
+            owner = true,
+            keypair = keypair
+        )
+            .flatMap {
+                ActorLoginDao.createActorLogin(
+                    loginId = "burry",
+                    password = "secret",
+                    pun = "buzzy",
+                    owner = true,
+                    keypair = keypair
+                )
+            }
+            .flatMap {
+                ActorLoginDao.linkActorLogin( "furry", "buzzy", false )
+            }
+            .flatMapMaybe {
+                ActorLoginDao.getLoginActorLink( "furry" )
+            }
+            .subscribe(
+                { loginActorLink ->
+                    testContext.verify {
+                        assertThat( loginActorLink.id ).isEqualTo( "furry" )
+                        assertThat( loginActorLink.actors ).isInstanceOf( JsonArray::class.java )
+                        assertThat( loginActorLink.actors.size() ).isEqualTo( 2 )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
                 }
             )
     }
