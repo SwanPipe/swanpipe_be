@@ -20,13 +20,16 @@ import com.swanpipe.InitHttp
 import com.swanpipe.InitPg
 import com.swanpipe.actions.ActorLoginActions
 import com.swanpipe.daos.ActorLoginDao
+import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.HttpInfo
 import com.swanpipe.utils.genRsa2048
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.kotlin.core.json.JsonObject
+import io.vertx.kotlin.core.json.get
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.ext.web.client.WebClient
@@ -80,11 +83,71 @@ object OpenApi3RouterTest {
                         ) }
                     )
             }
+            .flatMap { response ->
+
+                // verify good response
+                testContext.verify {
+                    assertThat( response.statusCode() ).isEqualTo( 200 )
+                    assertThat( response.bodyAsJsonObject().getString( "token" ) ).isNotBlank()
+                }
+
+                //now test bad login
+                val web = WebClient.create( io.vertx.reactivex.core.Vertx( vertx ) )
+                web.post( HttpInfo.actualPort, HttpInfo.host, "/spv1/login" )
+                    .rxSendJsonObject(
+                        json { obj(
+                            "loginId" to "foo",
+                            "password" to "notasecret"
+                        ) }
+                    )
+            }
+            .subscribe(
+                { response ->
+                    testContext.verify {
+                        assertThat( response.statusCode() ).isEqualTo( 401 )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
+                }
+            )
+    }
+
+    @DisplayName( "Test accountInfo" )
+    @Test
+    fun testAccountInfo( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        val json = JsonObject()
+            .put("id", "foo2")
+            .put("password", "secret")
+            .put("pun", "bar2")
+        ActorLoginActions.createActorLogin(json)
+            .flatMap {
+                val web = WebClient.create( io.vertx.reactivex.core.Vertx( vertx ) )
+                web.post( HttpInfo.actualPort, HttpInfo.host, "/spv1/login" )
+                    .rxSendJsonObject(
+                        json { obj(
+                            "loginId" to "foo2",
+                            "password" to "secret"
+                        ) }
+                    )
+            }
+            .flatMap { response ->
+                val token = response.bodyAsJsonObject().getString( "token" )
+                val web = WebClient.create( io.vertx.reactivex.core.Vertx( vertx ) )
+                web.get( HttpInfo.actualPort, HttpInfo.host, "/spv1/account-info" )
+                    .putHeader( AUTHORIZATION_HEADER, "Bearer ${token}" )
+                    .rxSend()
+            }
             .subscribe(
                 { response ->
                     testContext.verify {
                         assertThat( response.statusCode() ).isEqualTo( 200 )
-                        assertThat( response.bodyAsJsonObject().getString( "token" ) ).isNotBlank()
+                        val body = response.bodyAsJsonObject()
+                        assertThat( body.getString( "loginId" ) ).isEqualTo( "foo2" )
+                        assertThat( body.getJsonArray( "actors" ).size() ).isEqualTo( 1 )
+                        assertThat( body.getJsonArray( "actors" ).get<JsonObject>( 0 ).getString( "pun") ).isEqualTo( "bar2" )
                     }
                     testContext.completeNow()
                 },

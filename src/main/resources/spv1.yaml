@@ -54,6 +54,50 @@ paths:
                   created:
                     type: string
                     description: Human readable date and time of creation
+  /account-info:
+    get:
+      summary: Gets account information including linked actors
+      operationId: accountInfo
+      responses:
+        200:
+          description: JSON object with account information, including linked actors
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - loginId
+                  - created
+                  - enabled
+                  - data
+                  - actors
+                properties:
+                  loginId:
+                    type: string
+                  created:
+                    type: string
+                    description: Human readable date and time of creation
+                  enabled:
+                    type: boolean
+                    description: true if the account is enabled for login
+                  data:
+                    type: object
+                    description: contains information about the account
+                  actors:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - pun
+                        - owner
+                      properties:
+                        pun:
+                          type: string
+                          description: preferred user name of actor
+                        owner:
+                          type: boolean
+                          description: true if this account owns the actor
+
 
 components:
   securitySchemes:

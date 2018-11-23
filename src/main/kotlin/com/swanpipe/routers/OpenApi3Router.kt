@@ -17,6 +17,7 @@
 package com.swanpipe.routers
 
 import com.swanpipe.actions.LoginActions.checkLogin
+import com.swanpipe.daos.ActorLoginDao.getLoginActorLink
 import com.swanpipe.daos.LoginDao.getLogin
 import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.appLogger
@@ -49,9 +50,10 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
 
     OpenAPI3RouterFactory.rxCreate(vertx, "spv1.yaml")
         .subscribe { rf ->
-            rf.addHandlerByOperationId("login", loginHandler(jwt))
 
+            rf.addHandlerByOperationId("login", loginHandler(jwt))
             rf.addHandlerByOperationId("loginAccount", loginAccountHandler())
+            rf.addHandlerByOperationId("accountInfo", accountInfoHandler())
 
             val options = RouterFactoryOptions()
                 .setMountResponseContentTypeHandler(true)
@@ -150,6 +152,40 @@ private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                     rc.response().setStatusCode(401).end()
                 }
             )
+    }
+}
+
+private fun accountInfoHandler() : (RoutingContext) -> Unit {
+    return { rc ->
+        rc.user()?.let {
+            getLoginActorLink(loginId(rc))
+                .subscribe(
+                    { login ->
+                        rc.response()
+                            .end(
+                                json {
+                                    obj(
+                                        "loginId" to login.id,
+                                        "created" to login.created.toString(),
+                                        "enabled" to login.enabled,
+                                        "data" to login.data,
+                                        "actors" to login.actors
+                                    )
+                                }.encodePrettily()
+                            )
+                    },
+                    { e ->
+                        appLogger.error { "action=accountInfo loginId=${loginId(rc)} result=error : ${e}" }
+                        rc.response().setStatusCode(500).end()
+                    },
+                    {
+                        appLogger.info { "action=accountInfo loginId=${loginId(rc)} result=failed" }
+                        rc.response().setStatusCode(404).end()
+                    }
+                )
+        } ?: run {
+            rc.response().setStatusCode(401).end()
+        }
     }
 }
 
