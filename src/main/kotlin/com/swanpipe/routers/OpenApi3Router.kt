@@ -21,6 +21,7 @@ import com.swanpipe.daos.ActorLoginDao.getLoginActorLink
 import com.swanpipe.daos.LoginDao.getLogin
 import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.appLogger
+import io.reactivex.Maybe
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.kotlin.core.json.json
@@ -156,35 +157,54 @@ private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
 }
 
 private fun accountInfoHandler() : (RoutingContext) -> Unit {
+    return handler(
+        "accountInfo",
+        { rc ->
+            getLoginActorLink( loginId(rc) )
+        },
+        { rc, login ->
+            rc.response()
+                .end(
+                    json {
+                        obj(
+                            "loginId" to login.id,
+                            "created" to login.created.toString(),
+                            "enabled" to login.enabled,
+                            "data" to login.data,
+                            "actors" to login.actors
+                        )
+                    }.encodePrettily()
+                )
+        },
+        true
+    )
+}
+
+private fun <T> handler(
+    actionName: String,
+    action: (RoutingContext) -> Maybe<T>,
+    responder: (RoutingContext, T) -> Unit,
+    authenticate: Boolean
+):
+            (RoutingContext) -> Unit {
     return { rc ->
-        rc.user()?.let {
-            getLoginActorLink(loginId(rc))
+        if (authenticate && rc.user() == null) {
+            rc.response().setStatusCode(401).end()
+        } else {
+            action(rc)
                 .subscribe(
-                    { login ->
-                        rc.response()
-                            .end(
-                                json {
-                                    obj(
-                                        "loginId" to login.id,
-                                        "created" to login.created.toString(),
-                                        "enabled" to login.enabled,
-                                        "data" to login.data,
-                                        "actors" to login.actors
-                                    )
-                                }.encodePrettily()
-                            )
+                    {
+                        responder(rc, it)
                     },
                     { e ->
-                        appLogger.error { "action=accountInfo loginId=${loginId(rc)} result=error : ${e}" }
+                        appLogger.error { "action=${actionName} loginId=${loginId(rc)} result=error : ${e}" }
                         rc.response().setStatusCode(500).end()
                     },
                     {
-                        appLogger.info { "action=accountInfo loginId=${loginId(rc)} result=failed" }
+                        appLogger.info { "action=${actionName} loginId=${loginId(rc)} result=failed" }
                         rc.response().setStatusCode(404).end()
                     }
                 )
-        } ?: run {
-            rc.response().setStatusCode(401).end()
         }
     }
 }

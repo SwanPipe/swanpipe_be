@@ -156,4 +156,32 @@ object OpenApi3RouterTest {
                 }
             )
     }
+
+    @DisplayName( "Test AccountInfo with no user" )
+    @Test
+    fun testNoUserAccountInfo( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool( vertx )
+        val json = JsonObject()
+            .put("id", "foo3")
+            .put("password", "secret")
+            .put("pun", "bar3")
+        ActorLoginActions.createActorLogin(json)
+            .flatMap {
+                val web = WebClient.create( io.vertx.reactivex.core.Vertx( vertx ) )
+                web.get( HttpInfo.actualPort, HttpInfo.host, "/spv1/account-info" )
+                    .rxSend()
+            }
+            .subscribe(
+                { response ->
+                    testContext.verify {
+                        assertThat( response.statusCode() ).isEqualTo( 401 )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
+                }
+            )
+
+    }
 }
