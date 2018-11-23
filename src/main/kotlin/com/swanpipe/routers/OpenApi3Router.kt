@@ -22,6 +22,7 @@ import com.swanpipe.daos.LoginDao.getLogin
 import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.appLogger
 import io.reactivex.Maybe
+import io.reactivex.Single
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.kotlin.core.json.json
@@ -88,35 +89,26 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
 
 }
 
+
 private fun loginAccountHandler(): (RoutingContext) -> Unit {
-    return { rc ->
-        rc.user()?.let {
+    return handlerMaybe(
+        "loginAccount",
+        { rc ->
             getLogin(loginId(rc))
-                .subscribe(
-                    { login ->
-                        rc.response()
-                            .end(
-                                json {
-                                    obj(
-                                        "loginId" to login.id,
-                                        "created" to login.created.toString()
-                                    )
-                                }.encodePrettily()
-                            )
-                    },
-                    { e ->
-                        appLogger.error { "action=loginAccount loginId=${loginId(rc)} result=error : ${e}" }
-                        rc.response().setStatusCode(500).end()
-                    },
-                    {
-                        appLogger.info { "action=loginAccount loginId=${loginId(rc)} result=failed" }
-                        rc.response().setStatusCode(404).end()
-                    }
+        },
+        { rc, login ->
+            rc.response()
+                .end(
+                    json {
+                        obj(
+                            "loginId" to login.id,
+                            "created" to login.created.toString()
+                        )
+                    }.encodePrettily()
                 )
-        } ?: run {
-            rc.response().setStatusCode(401).end()
-        }
-    }
+        },
+        true
+    )
 }
 
 private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
@@ -157,7 +149,7 @@ private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
 }
 
 private fun accountInfoHandler() : (RoutingContext) -> Unit {
-    return handler(
+    return handlerMaybe(
         "accountInfo",
         { rc ->
             getLoginActorLink( loginId(rc) )
@@ -180,7 +172,7 @@ private fun accountInfoHandler() : (RoutingContext) -> Unit {
     )
 }
 
-private fun <T> handler(
+private fun <T> handlerMaybe(
     actionName: String,
     action: (RoutingContext) -> Maybe<T>,
     responder: (RoutingContext, T) -> Unit,
@@ -207,6 +199,33 @@ private fun <T> handler(
                 )
         }
     }
+}
+
+private fun <T> handlerSingle(
+    actionName: String,
+    action: (RoutingContext) -> Single<T>,
+    responder: (RoutingContext, T) -> Unit,
+    authenticate: Boolean
+    ) :
+        (RoutingContext) -> Unit {
+    return { rc ->
+        if( authenticate && rc.user() == null ) {
+            rc.response().setStatusCode( 401 ).end()
+        }
+        else {
+            action( rc )
+                .subscribe(
+                    {
+                        responder( rc, it )
+                    },
+                    { e ->
+                        appLogger.error { "action=${actionName} loginId=${loginId(rc)} result=error : ${e}" }
+                        rc.response().setStatusCode(500).end()
+                    }
+                )
+        }
+    }
+
 }
 
 fun loginId( rc : RoutingContext ) : String {
