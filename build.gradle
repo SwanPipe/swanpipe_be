@@ -74,6 +74,7 @@ dependencies {
     compile "io.vertx:vertx-auth-shiro:$vertx_version"
     compile "io.vertx:vertx-web-api-contract:$vertx_version"
     compile "io.vertx:vertx-auth-jwt:$vertx_version"
+    compile "io.vertx:vertx-web-client:$vertx_version"
     
     // Reactive PG Client
     compile "io.reactiverse:reactive-pg-client:0.10.7"

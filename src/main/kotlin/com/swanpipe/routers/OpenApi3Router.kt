@@ -142,6 +142,7 @@ private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                 },
                 { e ->
                     appLogger.error { "action=login loginId=${loginId} result=error : ${e}" }
+                    e.printStackTrace()
                     rc.response().setStatusCode(500).end()
                 },
                 {
