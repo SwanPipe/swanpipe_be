@@ -115,7 +115,6 @@ object ActorLoginDao {
 
     fun getLoginActorLink( id: String ) : Maybe<LoginActorLink> {
         return PgClient(Db.pgPool)
-                //TODO fix this to have ${table("login")
             .rxPreparedQuery(
                 """
                     select
@@ -124,14 +123,14 @@ object ActorLoginDao {
                         created,
                         data,
                         json_agg( sub )
-                    from login,
+                    from ${table("login")},
                         (
                             select
                                 login_id as "loginId",
                                 pun,
                                 owner
                             from
-                                login_actor_link
+                                ${table("login_actor_link")}
                             where
                                 login_id = $1
                         ) sub
