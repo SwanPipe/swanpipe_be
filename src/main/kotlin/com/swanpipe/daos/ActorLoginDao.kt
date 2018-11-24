@@ -115,6 +115,7 @@ object ActorLoginDao {
 
     fun getLoginActorLink( id: String ) : Maybe<LoginActorLink> {
         return PgClient(Db.pgPool)
+                //TODO fix this to have ${table("login")
             .rxPreparedQuery(
                 """
                     select

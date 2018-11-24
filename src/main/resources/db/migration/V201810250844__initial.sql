@@ -54,3 +54,20 @@ create table login_actor_link (
   owner boolean not null default true,               -- determines that the login id has actor ownership privledges
   primary key( login_id, pun )
 );
+
+
+/*
+ Table holds general configuration information.
+ Most likely will not have that many rows.
+ */
+create table config (
+  id text not null primary key,
+  data jsonb not null default '{}'
+);
+
+insert into config (id, data) values ('signup',
+  '{'
+  '  "allowOpenRegistration":   false,'
+  '  "loginIdIsEmailAddress":   false,'
+  '  "verifyLoginEmailAddress": false'
+  '}'::jsonb);
