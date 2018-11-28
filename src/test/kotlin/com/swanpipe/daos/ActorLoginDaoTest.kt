@@ -95,9 +95,11 @@ object ActorLoginDaoTest {
         ActorLoginDao.createActorLogin(
             loginId = "furry",
             password = "secret",
+            loginData = null,
             pun = "fuzzy",
             owner = true,
-            keypair = keypair
+            keypair = keypair,
+            actorData = null
         )
             .flatMap {
                 testContext.verify {
@@ -134,17 +136,21 @@ object ActorLoginDaoTest {
         ActorLoginDao.createActorLogin(
             loginId = "furry",
             password = "secret",
+            loginData = null,
             pun = "fuzzy",
             owner = true,
-            keypair = keypair
+            keypair = keypair,
+            actorData = null
         )
             .flatMap {
                 ActorLoginDao.createActorLogin(
                     loginId = "burry",
                     password = "secret",
+                    loginData = null,
                     pun = "buzzy",
                     owner = true,
-                    keypair = keypair
+                    keypair = keypair,
+                    actorData = null
                 )
             }
             .flatMap {
@@ -176,9 +182,11 @@ object ActorLoginDaoTest {
         ActorLoginDao.createActorLogin(
             loginId = "furry",
             password = "secret",
+            loginData = null,
             pun = "fuzzy",
             owner = true,
-            keypair = keypair
+            keypair = keypair,
+            actorData = null
         )
             .flatMapMaybe {
                 ActorLoginDao.getLoginActorLink( "furry" )

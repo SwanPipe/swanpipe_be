@@ -47,9 +47,11 @@ object ActorLoginActions {
                 ActorLoginDao.createActorLogin(
                     it.first.getString(LoginActions.ID),
                     it.first.getString(LoginActions.PASSWORD),
+                    null,
                     it.first.getString(ActorActions.PUN),
                     it.first.getBoolean(OWNER),
-                    it.second
+                    it.second,
+                    null
                 )
             }
     }

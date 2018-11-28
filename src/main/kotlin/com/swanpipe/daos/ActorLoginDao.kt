@@ -17,6 +17,7 @@ package com.swanpipe.daos
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
+import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
@@ -78,21 +79,29 @@ object ActorLoginDao {
     fun createActorLogin(
         loginId: String,
         password: String,
+        loginData: JsonObject?,
         pun: String,
         owner: Boolean,
-        keypair: Pair<String, Buffer>
+        keypair: Pair<String, Buffer>,
+        actorData: JsonObject?
     ): Single<Triple<String, String, Boolean>> {
+        val ld = loginData?.let { loginData } ?:kotlin.run { JsonObject() }
+        val ad = actorData?.let { actorData } ?:kotlin.run { JsonObject() }
+        val tuple = Tuple.of(loginId, password, pun, keypair.first, keypair.second)
+        tuple.addBoolean( owner )
+        tuple.delegate.addJson( Json.create( ld ) )
+        tuple.delegate.addJson( Json.create( ad ) )
         return PgClient(Db.pgPool).rxPreparedQuery(
             """
                 with login_insert as (
                 insert into ${table("login")}
-                        ( id, password )
-                        values ($1,$2)
+                        ( id, password, data )
+                        values ($1, $2, $7)
                 ),
                 actor_insert as (
                 insert into ${table("actor")}
-                        ( pun, public_key_pem, private_key )
-                        values ( $3, $4, $5 )
+                        ( pun, public_key_pem, private_key, data )
+                        values ( $3, $4, $5, $8 )
                 )
                 insert into ${table("login_actor_link")}
                         ( login_id, pun, owner )
@@ -100,8 +109,7 @@ object ActorLoginDao {
                         ( $1, $3, $6 )
                 returning login_id, pun, owner
             """.trimIndent(),
-            Tuple.of(loginId, password, pun, keypair.first, keypair.second)
-                .addBoolean(owner)
+            tuple
         )
             .map { pgRowSet ->
                 val row = pgRowSet.iterator().next()
