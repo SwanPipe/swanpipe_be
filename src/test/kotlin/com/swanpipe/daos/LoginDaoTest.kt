@@ -59,7 +59,7 @@ object LoginDaoTest {
     fun testCreateLogin(vertx: Vertx, testContext: VertxTestContext) {
 
         InitPg.pool(vertx)
-        LoginDao.createLogin("fizzlebottom", "secret")
+        LoginDao.createLogin("fizzlebottom", "secret", null )
             .flatMap { login ->
                 assertThat(login.id).isEqualTo("fizzlebottom")
                 LoginDao.getLogin(login.id).toSingle()
@@ -104,7 +104,7 @@ object LoginDaoTest {
     @Test
     fun testSetLoginData(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
-        LoginDao.createLogin("foo", "secret")
+        LoginDao.createLogin("foo", "secret", null)
             .flatMap { login ->
                 LoginDao.setLoginData(login.id, arrayOf("loginType"), "normal")
             }
@@ -120,7 +120,7 @@ object LoginDaoTest {
     @Test
     fun testSetLoginDataObject(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
-        LoginDao.createLogin("foo", "secret")
+        LoginDao.createLogin("foo", "secret", null)
             .flatMap { login ->
                 LoginDao.setLoginData(login.id, arrayOf("loginCount"), Json.create(JsonObject().put("bar", "4000")))
             }
@@ -136,7 +136,7 @@ object LoginDaoTest {
     @Test
     fun testSetLoginDataInt(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
-        LoginDao.createLogin("foo", "secret")
+        LoginDao.createLogin("foo", "secret", null)
             .flatMap { login ->
                 LoginDao.setLoginData(login.id, arrayOf("loginCount"), Integer(4000))
             }
@@ -152,7 +152,7 @@ object LoginDaoTest {
     @Test
     fun testSetLoginDataBoolean(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
-        LoginDao.createLogin("foo", "secret")
+        LoginDao.createLogin("foo", "secret", null)
             .flatMap { login ->
                 LoginDao.setLoginData(login.id, arrayOf("acceptsFollowers"), false)
             }
@@ -168,7 +168,7 @@ object LoginDaoTest {
     @Test
     fun testEnableLogin(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
-        LoginDao.createLogin("foo", "secret")
+        LoginDao.createLogin("foo", "secret", null)
             .flatMap { _ ->
                 LoginDao.enableLogin("foo", false)
             }

@@ -22,6 +22,29 @@
   "ssh" : {
     "port" : 5000,
     "host" : "localhost"
+  },
+  "startupAccounts" : {
+    "loginActors" : [
+      {
+        "loginId" : "admin",
+        "password" : "secret",
+        "pun" : "beautifulSwan",
+        "email" : "foo@example.com",
+        "roles" : [ "admin" ]
+      }
+    ],
+    "actors" : [
+      {
+        "pun" : "ambassador"
+      }
+    ],
+    "links" : [
+      {
+        "loginId" : "admin",
+        "pun" : "ambassador",
+        "owner" : true
+      }
+    ]
   }
 
 }

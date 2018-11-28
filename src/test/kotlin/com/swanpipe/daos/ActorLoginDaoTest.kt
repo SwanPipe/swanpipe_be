@@ -58,7 +58,7 @@ object ActorLoginDaoTest {
     fun testLinkActorLogin(vertx: Vertx, testContext: VertxTestContext) {
 
         InitPg.pool(vertx)
-        LoginDao.createLogin("fizzlebottom", "secret")
+        LoginDao.createLogin("fizzlebottom", "secret", null)
             .flatMap { _ ->
                 val keypair = genRsa2048()
                 ActorDao.createActor("fizzy", keypair)

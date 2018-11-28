@@ -35,6 +35,7 @@ object LoginActions {
 
     val PASSWORD = "password"
     val ID = "id"
+    val DATA = "data"
 
     fun prepareNewLogin(login: JsonObject): JsonObject {
         val hashed = BCrypt.hashpw(login[PASSWORD], BCrypt.gensalt())
@@ -68,7 +69,7 @@ object LoginActions {
                 prepareNewLogin(it)
             }
             .flatMap {
-                LoginDao.createLogin(it[ID], it[PASSWORD])
+                LoginDao.createLogin(it[ID], it[PASSWORD], it[DATA])
             }
     }
 
