@@ -24,6 +24,9 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
+import io.vertx.kotlin.core.json.array
+import io.vertx.kotlin.core.json.json
+import io.vertx.kotlin.core.json.obj
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -74,6 +77,89 @@ object LoginActionsTest {
                 },
                 {
                     testContext.failNow(it)
+                }
+            )
+    }
+
+    @DisplayName("Test create login action with email and role")
+    @Test
+    fun testCreateLoginWithEmailAndRole(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        val json = JsonObject()
+            .put("id", "foo2")
+            .put("password", "secret")
+            .put( "data", json { obj(
+                "email" to "foo@example.com",
+                "roles" to array( "admin" )
+            ) })
+        LoginActions.createLogin(json)
+            .subscribe(
+                { login ->
+                    testContext.verify {
+                        assertThat(login.id).isEqualTo("foo2")
+                        assertThat(BCrypt.checkpw("secret", login.password)).isTrue()
+                        assertThat(login.data.getString("email") ).isEqualTo("foo@example.com")
+                        assertThat(login.data.getJsonArray("roles") ).contains( "admin" )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    if( it is ValidationException ) {
+                        for( i in it.issues ) {
+                            println( "validation issue ${i}")
+                        }
+                    }
+                    testContext.failNow(it)
+                }
+            )
+    }
+
+    @DisplayName("Test create login action with bad email")
+    @Test
+    fun testCreateLoginWithBadEmail(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        val json = JsonObject()
+            .put("id", "foo3")
+            .put("password", "secret")
+            .put( "data", json { obj(
+                "email" to "foo",
+                "roles" to array( "admin" )
+            ) })
+        LoginActions.createLogin(json)
+            .subscribe(
+                { _ ->
+                    testContext.failNow( java.lang.RuntimeException( "should have errored with an email exception"))
+                },
+                {
+                    testContext.verify {
+                        assertThat( it ).isInstanceOf( ValidationException::class.java )
+                    }
+                    testContext.completeNow()
+                }
+            )
+    }
+
+    @DisplayName("Test create login action with bad role")
+    @Test
+    fun testCreateLoginWithBadRole(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        val json = JsonObject()
+            .put("id", "foo4")
+            .put("password", "secret")
+            .put( "data", json { obj(
+                "email" to "foo@example.com",
+                "roles" to array( "shitposter" )
+            ) })
+        LoginActions.createLogin(json)
+            .subscribe(
+                { _ ->
+                    testContext.failNow( java.lang.RuntimeException( "should have errored with a bad role"))
+                },
+                {
+                    testContext.verify {
+                        assertThat( it ).isInstanceOf( ValidationException::class.java )
+                    }
+                    testContext.completeNow()
                 }
             )
     }

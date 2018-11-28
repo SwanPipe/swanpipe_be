@@ -36,10 +36,19 @@ object LoginActions {
     val PASSWORD = "password"
     val ID = "id"
     val DATA = "data"
+    val ROLES = "roles"
+    val EMAIL = "email"
+
+    enum class RolesEnum() {
+        admin
+    }
 
     fun prepareNewLogin(login: JsonObject): JsonObject {
+
+        //bcrypt password
         val hashed = BCrypt.hashpw(login[PASSWORD], BCrypt.gensalt())
         login.put(PASSWORD, hashed)
+
         return login
     }
 
@@ -47,18 +56,49 @@ object LoginActions {
     fun validateNewLogin(login: JsonObject) {
 
         val validator = JsonValidator(login)
+
         validator.forProperty { it.getString(ID) } rules {
             length(min = 1, max = 100)
         } onError {
             errorMessage("Login ID must be between 1 and 100 characters")
         }
+
         validator.forProperty { it.getString(PASSWORD) } rules {
             length(min = 1, max = 100)
         } onError {
             errorMessage("password must be between 1 and 100 characters")
         }
 
-        ValidationException("new login validatio").validate(validator)
+        login.getJsonObject(DATA)?.let {
+
+            validator.forProperty { it.getJsonObject(DATA)?.getString(EMAIL) } rules {
+                email()
+            } onError {
+                errorMessage("email is not properly formatted")
+            }
+
+            validator.forProperty { it.getJsonObject(DATA)?.getJsonArray(ROLES) } rules {
+                mustBe {
+                    it?.let {
+                        var found = false
+                        for( r in it.list ) {
+                            if( r is String && RolesEnum.values().map { it.name }.contains( r ) ) {
+                                found = true
+                                break
+                            }
+                        }
+                        found
+                    } ?: kotlin.run {
+                        true
+                    }
+                }
+            } onError {
+                errorMessage("unknown role type in ${login.getJsonObject(DATA).getJsonArray(ROLES)}")
+            }
+
+        }
+
+        ValidationException("new login validation").validate(validator)
 
     }
 
