@@ -29,8 +29,10 @@
         "loginId" : "admin",
         "password" : "secret",
         "pun" : "beautifulSwan",
-        "email" : "foo@example.com",
-        "roles" : [ "admin" ]
+        "loginData" : {
+          "email" : "foo@example.com",
+          "roles" : [ "admin" ]
+        }
       }
     ],
     "actors" : [

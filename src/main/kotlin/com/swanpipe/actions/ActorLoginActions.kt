@@ -22,7 +22,9 @@ import io.vertx.core.json.JsonObject
 
 object ActorLoginActions {
 
-    val OWNER = "owner"
+    const val OWNER = "owner"
+    const val LOGINDATA = "loginData"
+    const val ACTORDATA = "actorData"
 
     fun prepareNewActorLogin(actorLogin: JsonObject): JsonObject {
         actorLogin.getBoolean(OWNER) ?: kotlin.run {
@@ -47,11 +49,11 @@ object ActorLoginActions {
                 ActorLoginDao.createActorLogin(
                     it.first.getString(LoginActions.ID),
                     it.first.getString(LoginActions.PASSWORD),
-                    null,
+                    it.first.getJsonObject( LOGINDATA ),
                     it.first.getString(ActorActions.PUN),
                     it.first.getBoolean(OWNER),
                     it.second,
-                    null
+                    it.first.getJsonObject(ACTORDATA)
                 )
             }
     }
