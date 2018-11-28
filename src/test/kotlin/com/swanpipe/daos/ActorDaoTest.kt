@@ -59,7 +59,7 @@ object ActorDaoTest {
 
         InitPg.pool(vertx)
         val keypair = genRsa2048()
-        ActorDao.createActor("fugly", keypair)
+        ActorDao.createActor("fugly", keypair, null)
             .flatMap { actor ->
                 assertThat(actor.pun).isEqualTo("fugly")
                 ActorDao.getActor(actor.pun).toSingle()
@@ -104,7 +104,7 @@ object ActorDaoTest {
     fun testSetActorData(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         val keypair = genRsa2048()
-        ActorDao.createActor("foo", keypair)
+        ActorDao.createActor("foo", keypair, null)
             .flatMap { actor ->
                 ActorDao.setActorData(actor.pun, arrayOf("name"), "a fun user")
             }

@@ -61,7 +61,7 @@ object ActorLoginDaoTest {
         LoginDao.createLogin("fizzlebottom", "secret", null)
             .flatMap { _ ->
                 val keypair = genRsa2048()
-                ActorDao.createActor("fizzy", keypair)
+                ActorDao.createActor("fizzy", keypair, null)
             }
             .flatMap { _ ->
                 ActorLoginDao.linkActorLogin("fizzlebottom", "fizzy", false)

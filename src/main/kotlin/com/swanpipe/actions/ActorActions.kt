@@ -30,9 +30,12 @@ import java.util.regex.Pattern
 
 const val PUN_CHARS = "[^\\s:?#\\[\\]!$@&'()*+,;=/]*"
 
+
 object ActorActions {
 
     val PUN = "pun"
+    val DATA = "data"
+
     private val PUN_REGEX = Pattern.compile(PUN_CHARS)
 
     fun prepareNewActor(actor: JsonObject): Pair<JsonObject, Pair<String, Buffer>> {
@@ -59,7 +62,7 @@ object ActorActions {
                 prepareNewActor(actor)
             }
             .flatMap {
-                ActorDao.createActor(it.first.getString(PUN), it.second)
+                ActorDao.createActor(it.first.getString(PUN), it.second, it.first.getJsonObject(DATA))
             }
     }
 

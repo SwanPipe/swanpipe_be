@@ -17,6 +17,7 @@ package com.swanpipe.daos
 
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
+import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
@@ -46,14 +47,15 @@ object ActorDao {
         )
     }
 
-    fun createActor(pun: String, keypair: Pair<String, Buffer>): Single<Actor> {
+    fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?): Single<Actor> {
+        val actorData = data?.let { data }?:run { JsonObject() }
         return PgClient(Db.pgPool)
             .rxPreparedQuery(
                 """insert into ${table("actor")}
-                        | ( pun, public_key_pem, private_key )
-                        | values ($1,$2,$3) returning
+                        | ( pun, public_key_pem, private_key, data )
+                        | values ($1,$2,$3,$4) returning
                         | pun, created, public_key_pem, private_key, data""".trimMargin(),
-                Tuple.of(pun, keypair.first, keypair.second)
+                Tuple.of(pun, keypair.first, keypair.second, Json.create( actorData ))
             )
             .map { pgRowSet ->
                 mapRowToActor(pgRowSet.iterator().next())
