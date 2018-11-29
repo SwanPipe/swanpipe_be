@@ -15,13 +15,13 @@
  */
 package com.swanpipe.verticles
 
-import com.swanpipe.actions.ActorLoginActions
-import com.swanpipe.utils.*
+import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.dbConfig
 import com.swanpipe.utils.Db.table
+import com.swanpipe.utils.HttpInfo
+import com.swanpipe.utils.Version
 import io.reactiverse.pgclient.PgClient
 import io.reactiverse.pgclient.PgPoolOptions
-import io.reactivex.Observable
 import io.reactivex.Single
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.DeploymentOptions
@@ -32,10 +32,6 @@ import io.vertx.reactivex.core.RxHelper
 import mu.KLogging
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
-import java.util.*
-
-const val STARTUP_ACCOUNTS = "startupAccounts"
-const val ACTOR_LOGINS = "actorLogins"
 
 /**
  * This is a "MainVerticle" verticle. It is used to deploy all other verticles.
@@ -175,35 +171,6 @@ class MainVerticle : AbstractVerticle() {
         }
     }
 
-    fun createStartupActorLogins( vertx: Vertx, config: JsonObject ) : Single<String> {
-        return Single.create { emitter ->
-            if( config.getJsonObject( STARTUP_ACCOUNTS ) != null &&
-                    config.getJsonObject(STARTUP_ACCOUNTS).getJsonArray(ACTOR_LOGINS) != null ) {
-                Observable.fromIterable(
-                    config.getJsonObject( STARTUP_ACCOUNTS ).getJsonArray( ACTOR_LOGINS ) )
-                    .flatMap {
-                        if( it is JsonObject ) {
-                            ActorLoginActions.createActorLogin( it ).toObservable()
-                        }
-                        else {
-                            throw java.lang.RuntimeException( "it is not JSON object. is ${it::class.java}")
-                        }
-                    }
-                    .collect( { ArrayList<Triple<String,String,Boolean>>() }, { a,i -> a.add( i )} )
-                    .subscribe(
-                        {
-                            emitter.onSuccess( "${it.size} actor logins created" )
-                        },
-                        {
-                            emitter.onError( it )
-                        }
-                    )
-            }
-            else {
-                emitter.onSuccess( "no actor logins configured" )
-            }
-        }
-    }
 
 }
 
