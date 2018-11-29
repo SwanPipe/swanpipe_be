@@ -59,6 +59,9 @@ object ConfigDao {
             }
     }
 
+    /**
+     * This method sets a config value if the given [loginId] as the proper [role].
+     */
     fun setConfig( id: String, data: JsonObject, loginId: String, role: String ) : Single<Config> {
         return PgClient( Db.pgPool )
             .rxPreparedQuery(
@@ -74,6 +77,30 @@ object ConfigDao {
                     returning id, data
                 """.trimIndent(),
                 Tuple.of( id, Json.create( data ), loginId, role )
+            )
+            .map { pgRowSet ->
+                mapRowToConfig( pgRowSet.iterator().next() )
+            }
+    }
+
+    /**
+     * This method sets a config value with no regard to role and user.
+     *
+     * Intended for system needs.
+     */
+    fun setConfig( id: String, data: JsonObject ) : Single<Config> {
+        return PgClient( Db.pgPool )
+            .rxPreparedQuery(
+                """
+                    insert into ${table("config")}
+                        ( id, data )
+                    select
+                        $1, $2::jsonb
+                    on conflict( id )
+                    do update set data = $2::jsonb
+                    returning id, data
+                """.trimIndent(),
+                Tuple.of( id, Json.create( data ) )
             )
             .map { pgRowSet ->
                 mapRowToConfig( pgRowSet.iterator().next() )

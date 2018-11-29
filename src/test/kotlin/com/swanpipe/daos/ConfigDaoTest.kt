@@ -140,4 +140,30 @@ object ConfigDaoTest {
                 }
             )
     }
+
+    @DisplayName( "test of get and set for system" )
+    @Test
+    fun testSetAndGetForSystem( vertx: Vertx, testContext: VertxTestContext ) {
+        InitPg.pool(vertx)
+        val json = json { obj( "foo" to "bar" ) }
+        ConfigDao.setConfig( "sysconfig", json )
+            .flatMapMaybe { _ ->
+                ConfigDao.getConfig( "sysconfig" )
+            }
+            .subscribe(
+                { config ->
+                    testContext.verify {
+                        assertThat( config.data.getString( "foo" ) ).isEqualTo( "bar" )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
+                },
+                {
+                    testContext.failNow( RuntimeException( "set and get config did not succeed" ) )
+                }
+            )
+    }
+
 }

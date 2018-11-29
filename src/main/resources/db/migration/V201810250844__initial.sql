@@ -65,7 +65,19 @@ create table config (
   data jsonb not null default '{}'
 );
 
-insert into config (id, data) values ('signup',
+/*
+ Config values for startup accounts.
+ Likely to be reset after the accounts are created by the system.
+ */
+insert into config (id, data) values ('startupAccounts',
+                                      '{'
+                                       '  "create":   true'
+                                       '}'::jsonb);
+
+/*
+ Config values for Signup
+ */
+insert into config (id, data) values ('signUp',
   '{'
   '  "allowOpenRegistration":   false,'
   '  "loginIdIsEmailAddress":   false,'
