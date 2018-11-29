@@ -24,7 +24,7 @@
     "host" : "localhost"
   },
   "startupAccounts" : {
-    "loginActors" : [
+    "actorLogins" : [
       {
         "loginId" : "admin",
         "password" : "secret",
