@@ -19,6 +19,7 @@ import com.swanpipe.actions.LoginActions.ID
 import com.swanpipe.daos.ConfigDao
 import com.swanpipe.daos.LoginDao
 import com.swanpipe.utils.appLogger
+import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.vertx.core.json.JsonArray
@@ -26,6 +27,7 @@ import io.vertx.core.json.JsonObject
 
 const val STARTUP_ACCOUNTS = "startupAccounts"
 const val ACTOR_LOGINS = "actorLogins"
+const val ACTORS = "actors"
 
 fun doStartupAccounts( config: JsonObject ) : Single<Boolean> {
     val saConfig = config.getJsonObject( STARTUP_ACCOUNTS )
@@ -36,6 +38,9 @@ fun doStartupAccounts( config: JsonObject ) : Single<Boolean> {
                     { config ->
                         if( config.data.getBoolean("create" )) {
                             createStartupActorLogins( saConfig )
+                                .flatMap {
+                                    createActors( saConfig )
+                                }
                                 .flatMap {
                                     ConfigDao.setConfig( STARTUP_ACCOUNTS, JsonObject().put( "create", false ) )
                                 }
@@ -72,12 +77,38 @@ fun createStartupActorLogins( saConfig: JsonObject) : Single<Boolean> {
     return Single.create { emitter ->
         if( saConfig.getJsonArray(ACTOR_LOGINS) != null ) {
             val actorLogins = saConfig.getJsonArray( ACTOR_LOGINS )
-            Observable.fromIterable( actorLogins )
+            Flowable.fromIterable( actorLogins )
                 .subscribe(
                     { actorLogin ->
                         ActorLoginActions.createActorLogin( actorLogin as JsonObject )
                             .subscribe { result : Triple<String,String,Boolean> ->
                                 appLogger.info { "Login ${result.first} with actor ${result.second} created" }
+                            }
+                    },
+                    {
+                        emitter.onError( it )
+                    },
+                    {
+                        emitter.onSuccess( true )
+                    }
+                )
+        }
+        else {
+            emitter.onSuccess( false )
+        }
+    }
+}
+
+fun createActors( saConfig: JsonObject ) : Single<Boolean> {
+    return Single.create { emitter ->
+        if( saConfig.getJsonArray( ACTORS ) != null ) {
+            val actors = saConfig.getJsonArray( ACTORS )
+            Flowable.fromIterable( actors )
+                .subscribe(
+                    { actor ->
+                        ActorActions.createActor( actor as JsonObject )
+                            .subscribe { result ->
+                                appLogger.info { "Actor ${result.pun} created" }
                             }
                     },
                     {
