@@ -15,6 +15,7 @@
  */
 package com.swanpipe.verticles
 
+import com.swanpipe.actions.doStartupAccounts
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.dbConfig
 import com.swanpipe.utils.Db.table
@@ -49,6 +50,9 @@ class MainVerticle : AbstractVerticle() {
         logVersion(vertx)
             .flatMap {
                 dbInit(vertx, config())
+            }
+            .flatMap {
+                doStartupAccounts( config() )
             }
             .flatMap {
                 config().getJsonObject(SSH_CONFIG_NAME)?.let {
