@@ -16,6 +16,7 @@
 package com.swanpipe.actions
 
 import com.swanpipe.actions.LoginActions.ID
+import com.swanpipe.daos.ActorLoginDao
 import com.swanpipe.daos.ConfigDao
 import com.swanpipe.daos.LoginDao
 import com.swanpipe.utils.appLogger
@@ -28,6 +29,7 @@ import io.vertx.core.json.JsonObject
 const val STARTUP_ACCOUNTS = "startupAccounts"
 const val ACTOR_LOGINS = "actorLogins"
 const val ACTORS = "actors"
+const val LINKS = "links"
 
 fun doStartupAccounts( config: JsonObject ) : Single<Boolean> {
     val saConfig = config.getJsonObject( STARTUP_ACCOUNTS )
@@ -40,6 +42,9 @@ fun doStartupAccounts( config: JsonObject ) : Single<Boolean> {
                             createStartupActorLogins( saConfig )
                                 .flatMap {
                                     createActors( saConfig )
+                                }
+                                .flatMap {
+                                    createLinks( saConfig )
                                 }
                                 .flatMap {
                                     ConfigDao.setConfig( STARTUP_ACCOUNTS, JsonObject().put( "create", false ) )
@@ -78,13 +83,14 @@ fun createStartupActorLogins( saConfig: JsonObject) : Single<Boolean> {
         if( saConfig.getJsonArray(ACTOR_LOGINS) != null ) {
             val actorLogins = saConfig.getJsonArray( ACTOR_LOGINS )
             Flowable.fromIterable( actorLogins )
+                .flatMap { actorLogin ->
+                    ActorLoginActions.createActorLogin( actorLogin as JsonObject ).toFlowable()
+                }
+                .map { result ->
+                    appLogger.info { "Created login ${result.first} with actor ${result.second}" }
+                }
                 .subscribe(
-                    { actorLogin ->
-                        ActorLoginActions.createActorLogin( actorLogin as JsonObject )
-                            .subscribe { result : Triple<String,String,Boolean> ->
-                                appLogger.info { "Login ${result.first} with actor ${result.second} created" }
-                            }
-                    },
+                    { },
                     {
                         emitter.onError( it )
                     },
@@ -104,13 +110,44 @@ fun createActors( saConfig: JsonObject ) : Single<Boolean> {
         if( saConfig.getJsonArray( ACTORS ) != null ) {
             val actors = saConfig.getJsonArray( ACTORS )
             Flowable.fromIterable( actors )
+                .flatMap { actor ->
+                    ActorActions.createActor( actor as JsonObject ).toFlowable()
+                }
+                .map { result ->
+                    appLogger.info { "created actor ${result.pun}" }
+                }
                 .subscribe(
-                    { actor ->
-                        ActorActions.createActor( actor as JsonObject )
-                            .subscribe { result ->
-                                appLogger.info { "Actor ${result.pun} created" }
-                            }
+                    { },
+                    {
+                        emitter.onError( it )
                     },
+                    {
+                        emitter.onSuccess( true )
+                    }
+                )
+        }
+        else {
+            emitter.onSuccess( false )
+        }
+    }
+}
+
+fun createLinks( saConfig: JsonObject ) : Single<Boolean> {
+    return Single.create { emitter ->
+        if( saConfig.getJsonArray( LINKS ) != null ) {
+            val links = saConfig.getJsonArray( LINKS )
+            Flowable.fromIterable( links )
+                .flatMap { link ->
+                    val loginId = (link as JsonObject).getString( "loginId" )
+                    val pun = link.getString( "pun" )
+                    val owner = link.getBoolean( "owner" )
+                    ActorLoginDao.linkActorLogin( loginId, pun, owner ).toFlowable()
+                }
+                .map { result ->
+                    appLogger.info { "Create link between login ${result.first} and actor ${result.second} as owner = ${result.third}" }
+                }
+                .subscribe(
+                    { },
                     {
                         emitter.onError( it )
                     },
