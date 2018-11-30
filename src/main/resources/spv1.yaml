@@ -97,6 +97,27 @@ paths:
                         owner:
                           type: boolean
                           description: true if this account owns the actor
+  /signup-token:
+    get:
+      summary: Gets a signup token which must be presented during signup.
+      operationId: signupToken
+      security: []
+      responses:
+        200:
+          description: Returns a signup token and signup information
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                  - openRegistration
+                properties:
+                  token:
+                    type: string
+                  openRegistration:
+                    type: boolean
+                    description: if false, open registration is not allowed
 
 
 components:

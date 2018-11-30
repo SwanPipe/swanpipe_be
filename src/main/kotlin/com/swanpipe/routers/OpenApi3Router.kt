@@ -18,7 +18,9 @@ package com.swanpipe.routers
 
 import com.swanpipe.actions.LoginActions.checkLogin
 import com.swanpipe.daos.ActorLoginDao.getLoginActorLink
+import com.swanpipe.daos.ConfigDao.getConfig
 import com.swanpipe.daos.LoginDao.getLogin
+import com.swanpipe.daos.SIGNUP_CONFIG_ID
 import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.appLogger
 import io.reactivex.Maybe
@@ -56,6 +58,7 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
             rf.addHandlerByOperationId("login", loginHandler(jwt))
             rf.addHandlerByOperationId("loginAccount", loginAccountHandler())
             rf.addHandlerByOperationId("accountInfo", accountInfoHandler())
+            rf.addHandlerByOperationId("signupToken", signupTokenHandler(jwt))
 
             val options = RouterFactoryOptions()
                 .setMountResponseContentTypeHandler(true)
@@ -143,6 +146,42 @@ private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                 {
                     appLogger.info { "action=login loginId=${loginId} result=failed" }
                     rc.response().setStatusCode(401).end()
+                }
+            )
+    }
+}
+
+private fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
+    return { rc ->
+        getConfig( SIGNUP_CONFIG_ID )
+            .subscribe(
+                { config ->
+                    val maxSeconds = config.data.getLong( "maxSignupSeconds" )
+                    val openRegistration = config.data.getBoolean( "allowOpenRegistration" )
+                    appLogger.error { "action=signupToken result=success" }
+                    rc.response()
+                        .end(
+                            json {
+                                obj(
+                                    "token" to jwt.generateToken(
+                                        JsonObject()
+                                            .put("iss", "swanpipe")
+                                            .put("exp", OffsetDateTime.now().plusSeconds( maxSeconds ).toEpochSecond())
+                                    ),
+                                    "openRegistration" to openRegistration
+                                )
+                            }.encodePrettily()
+                        )
+
+                },
+                { e ->
+                    appLogger.error { "action=signupToken result=error : ${e}" }
+                    e.printStackTrace()
+                    rc.response().setStatusCode(500).end()
+                },
+                {
+                    appLogger.info { "action=signupToken result=failed no signup configuration" }
+                    rc.response().setStatusCode(500).end()
                 }
             )
     }

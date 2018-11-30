@@ -80,6 +80,7 @@ insert into config (id, data) values ('startupAccounts',
 insert into config (id, data) values ('signUp',
   '{'
   '  "allowOpenRegistration":   false,'
-  '  "loginIdIsEmailAddress":   false,'
+  '  "minSignupSeconds" :       20,'
+  '  "maxSignupSeconds" :       60,'
   '  "verifyLoginEmailAddress": false'
   '}'::jsonb);

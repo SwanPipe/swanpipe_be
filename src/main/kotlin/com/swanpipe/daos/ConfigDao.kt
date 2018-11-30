@@ -31,6 +31,8 @@ data class Config(
     val data: JsonObject
 )
 
+const val SIGNUP_CONFIG_ID = "signUp"
+
 object ConfigDao {
 
     fun mapRowToConfig( row: Row) : Config {
