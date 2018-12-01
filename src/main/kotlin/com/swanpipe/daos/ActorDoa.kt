@@ -19,6 +19,7 @@ import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
+import io.reactiverse.reactivex.pgclient.PgRowSet
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
@@ -49,9 +50,17 @@ object ActorDao {
 
     fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?): Maybe<Actor> {
         return createActor(pun,keypair,data,PgClient( Db.pgPool ))
+            .flatMapMaybe { pgRowSet ->
+                if( pgRowSet.size() != 0 ) {
+                    Maybe.just( mapRowToActor(pgRowSet.iterator().next()) )
+                }
+                else {
+                    Maybe.empty()
+                }
+            }
     }
 
-    fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?, pg: PgClient ) : Maybe<Actor> {
+    fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?, pg: PgClient ) : Single<PgRowSet> {
         val actorData = data?.let { data }?:run { JsonObject() }
         return pg
             .rxPreparedQuery(
@@ -63,14 +72,6 @@ object ActorDao {
                         | pun, created, public_key_pem, private_key, data""".trimMargin(),
                 Tuple.of(pun, keypair.first, keypair.second, Json.create( actorData ))
             )
-            .flatMapMaybe { pgRowSet ->
-                if( pgRowSet.size() != 0 ) {
-                    Maybe.just( mapRowToActor(pgRowSet.iterator().next()) )
-                }
-                else {
-                    Maybe.empty()
-                }
-            }
     }
 
     fun getActor(pun: String): Maybe<Actor> {

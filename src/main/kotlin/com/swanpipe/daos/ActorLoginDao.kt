@@ -53,9 +53,17 @@ object ActorLoginDao {
 
     fun linkActorLogin(loginId: String, pun: String, owner: Boolean): Single<Triple<String, String, Boolean>> {
         return linkActorLogin( loginId, pun, owner, PgClient( Db.pgPool ) )
+            .map { pgRowSet ->
+                val row = pgRowSet.iterator().next()
+                Triple(
+                    row.getString("login_id"),
+                    row.getString("pun"),
+                    row.getBoolean("owner")
+                )
+            }
     }
 
-    fun linkActorLogin(loginId: String, pun: String, owner: Boolean, pg: PgClient): Single<Triple<String, String, Boolean>> {
+    fun linkActorLogin(loginId: String, pun: String, owner: Boolean, pg: PgClient): Single<PgRowSet> {
         return pg
             .rxPreparedQuery(
                 """insert into ${table("login_actor_link")}
@@ -68,14 +76,6 @@ object ActorLoginDao {
                     """.trimMargin(),
                 Tuple.of(loginId, pun, owner)
             )
-            .map { pgRowSet ->
-                val row = pgRowSet.iterator().next()
-                Triple(
-                    row.getString("login_id"),
-                    row.getString("pun"),
-                    row.getBoolean("owner")
-                )
-            }
     }
 
     fun createActorLogin(
@@ -123,7 +123,7 @@ object ActorLoginDao {
             }
     }
 
-/*    fun createActorLoginTx(
+    fun createActorLoginTx(
         loginId: String,
         password: String,
         loginData: JsonObject?,
@@ -131,17 +131,48 @@ object ActorLoginDao {
         owner: Boolean,
         keypair: Pair<String, Buffer>,
         actorData: JsonObject?
-    ) : Single<Triple<String,String,Boolean>> {
-        val pg = PgPool( Db.pgPool )
-        return pg
-            .rxBegin()
-            .flatMapMaybe {
-                LoginDao.createLogin( loginId, password, loginData, pg )
-            }
-            .flatMap {
-                ActorDao.createActor( pun, keypair, actorData, pg )
-            }
-    }*/
+    ) : Maybe<Triple<String,String,Boolean>> {
+        return Maybe.create { emitter ->
+            var login = false
+            var actor = false
+            PgPool( Db.pgPool )
+                .rxBegin()
+                .flatMapCompletable { tx ->
+                    LoginDao.createLogin( loginId, password, loginData, tx )
+                        .flatMap {
+                            if( it.size() != 0 ) {
+                                login = true
+                            }
+                            ActorDao.createActor( pun, keypair, actorData, tx )
+                        }
+                        .flatMap {
+                            if( it.size() != 0 ) {
+                                actor = true
+                            }
+                            linkActorLogin(loginId,pun,owner, tx)
+                        }
+                        .flatMapCompletable {
+                            tx.rxCommit()
+                        }
+                }
+                .subscribe(
+                    {
+                        if( !login ) {
+                            emitter.onComplete()
+                        }
+                        else if (!actor) {
+                            emitter.onComplete()
+                        }
+                        else {
+                            emitter.onSuccess( Triple( loginId, pun, owner ) )
+                        }
+                    },
+                    {
+                        emitter.onError( it )
+                    }
+                )
+        }
+    }
 
     fun getLoginActorLink( id: String ) : Maybe<LoginActorLink> {
         return PgClient(Db.pgPool)

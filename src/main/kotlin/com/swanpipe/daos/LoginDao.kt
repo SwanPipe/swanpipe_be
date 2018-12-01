@@ -49,9 +49,17 @@ object LoginDao {
 
     fun createLogin(id: String, password: String, data: JsonObject? ): Maybe<Login> {
         return createLogin( id, password, data, PgClient( Db.pgPool ) )
+            .flatMapMaybe<Login> { pgRowSet ->
+                if( pgRowSet.size() != 0 ) {
+                    Maybe.just( mapRowToLogin(pgRowSet.iterator().next()) )
+                }
+                else {
+                    Maybe.empty()
+                }
+            }
     }
 
-    fun createLogin( id: String, password: String, data: JsonObject?, pg: PgClient ) : Maybe<Login> {
+    fun createLogin( id: String, password: String, data: JsonObject?, pg: PgClient ) : Single<PgRowSet> {
         val loginData = data?.let { data } ?: run { JsonObject() }
         return pg
             .rxPreparedQuery(
@@ -64,14 +72,6 @@ object LoginDao {
                         | """.trimMargin(),
                 Tuple.of(id, password, Json.create( loginData ))
             )
-            .flatMapMaybe<Login> { pgRowSet ->
-                if( pgRowSet.size() != 0 ) {
-                    Maybe.just( mapRowToLogin(pgRowSet.iterator().next()) )
-                }
-                else {
-                    Maybe.empty()
-                }
-            }
     }
 
     fun getLogin(id: String): Maybe<Login> {
