@@ -15,15 +15,11 @@
 
 package com.swanpipe.actions
 
-import com.swanpipe.actions.LoginActions.ID
 import com.swanpipe.daos.ActorLoginDao
 import com.swanpipe.daos.ConfigDao
-import com.swanpipe.daos.LoginDao
 import com.swanpipe.utils.appLogger
 import io.reactivex.Flowable
-import io.reactivex.Observable
 import io.reactivex.Single
-import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 
 const val STARTUP_ACCOUNTS = "startupAccounts"
