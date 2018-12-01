@@ -42,6 +42,12 @@ data class LoginActorLink(
     val actors: JsonArray
 )
 
+data class ActorLogin(
+    val login: Login,
+    val actor: Actor,
+    val owner: Boolean
+)
+
 object ActorLoginDao {
 
     fun mapRowToLoginActorLink(row: Row): LoginActorLink {
@@ -89,7 +95,7 @@ object ActorLoginDao {
         owner: Boolean,
         keypair: Pair<String, Buffer>,
         actorData: JsonObject?
-    ) : Single<DbResult<Triple<Login,Actor,Boolean>>> {
+    ) : Single<DbResult<ActorLogin>> {
         return Single.create { emitter ->
             var login : Login? = null
             var actor : Actor? = null
@@ -130,7 +136,7 @@ object ActorLoginDao {
                         }
                         else {
                             emitter.onSuccess(
-                                DbResult( Triple(
+                                DbResult( ActorLogin(
                                     login!!,
                                     actor!!,
                                     owned!!

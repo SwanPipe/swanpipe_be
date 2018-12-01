@@ -60,10 +60,10 @@ class CreateActorLogin {
                     .subscribe(
                         { dbResult ->
                             if( dbResult.conflict != null ) {
-                                if (dbResult.result!!.third) {
-                                    process.write("Created actor of '${dbResult.result!!.second}' with login-id ${dbResult.result!!.first} as owner\n")
+                                if (dbResult.result!!.owner) {
+                                    process.write("Created actor of '${dbResult.result!!.actor}' with login-id ${dbResult.result!!.login} as owner\n")
                                 } else {
-                                    process.write("Created actor of '${dbResult.result!!.second}' with login-id ${dbResult.result!!.first}\n")
+                                    process.write("Created actor of '${dbResult.result!!.actor}' with login-id ${dbResult.result!!.login}\n")
                                 }
                             }
                             else {

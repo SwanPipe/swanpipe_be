@@ -65,9 +65,9 @@ object ActorLoginActionsTest {
             .subscribe(
                 { dbResult ->
                     testContext.verify {
-                        assertThat(dbResult.result!!.first.id).isEqualTo("foo")
-                        assertThat(dbResult.result!!.second.pun).isEqualTo("bar")
-                        assertThat(dbResult.result!!.third).isTrue()
+                        assertThat(dbResult.result!!.login.id).isEqualTo("foo")
+                        assertThat(dbResult.result!!.actor.pun).isEqualTo("bar")
+                        assertThat(dbResult.result!!.owner).isTrue()
                     }
                     testContext.completeNow()
                 },

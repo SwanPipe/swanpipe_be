@@ -17,6 +17,7 @@
 package com.swanpipe.actions
 
 import com.swanpipe.daos.Actor
+import com.swanpipe.daos.ActorLogin
 import com.swanpipe.daos.ActorLoginDao
 import com.swanpipe.daos.Login
 import com.swanpipe.utils.DbResult
@@ -39,7 +40,7 @@ object ActorLoginActions {
         return actorLogin
     }
 
-    fun createActorLogin(actorLogin: JsonObject): Single<DbResult<Triple<Login, Actor, Boolean>>> {
+    fun createActorLogin(actorLogin: JsonObject): Single<DbResult<ActorLogin>> {
         return Single.just(actorLogin)
             .map {
                 prepareNewActorLogin(it)

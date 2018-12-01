@@ -103,7 +103,7 @@ object ActorLoginDaoTest {
         )
             .flatMap {
                 testContext.verify {
-                    assertThat(it.result!!.third).isTrue()
+                    assertThat(it.result!!.owner).isTrue()
                 }
                 LoginDao.getLogin("furry2").toSingle()
             }

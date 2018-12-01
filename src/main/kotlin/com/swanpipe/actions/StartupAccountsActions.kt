@@ -84,7 +84,7 @@ fun createStartupActorLogins( saConfig: JsonObject) : Single<Boolean> {
                 }
                 .map { dbResult ->
                     if( dbResult.conflict != null ) {
-                        appLogger.info { "Created login ${dbResult.result!!.first.id} with actor ${dbResult.result!!.second.pun}" }
+                        appLogger.info { "Created login ${dbResult.result!!.login.id} with actor ${dbResult.result!!.actor.pun}" }
                     }
                     else {
                         appLogger.error { "Conflict creating ${dbResult.conflict}" }
