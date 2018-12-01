@@ -22,6 +22,7 @@ import com.swanpipe.daos.Actor
 import com.swanpipe.daos.ActorDao
 import com.swanpipe.utils.JsonValidator
 import com.swanpipe.utils.genRsa2048
+import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
@@ -55,8 +56,8 @@ object ActorActions {
 
     }
 
-    fun createActor(actor: JsonObject): Single<Actor> {
-        return Single.just(actor)
+    fun createActor(actor: JsonObject): Maybe<Actor> {
+        return Maybe.just(actor)
             .map {
                 validateNewActor(actor)
                 prepareNewActor(actor)

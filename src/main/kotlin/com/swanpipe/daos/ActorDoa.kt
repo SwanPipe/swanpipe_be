@@ -47,18 +47,25 @@ object ActorDao {
         )
     }
 
-    fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?): Single<Actor> {
+    fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?): Maybe<Actor> {
         val actorData = data?.let { data }?:run { JsonObject() }
         return PgClient(Db.pgPool)
             .rxPreparedQuery(
                 """insert into ${table("actor")}
                         | ( pun, public_key_pem, private_key, data )
-                        | values ($1,$2,$3,$4) returning
+                        | values ($1,$2,$3,$4)
+                        | on conflict do nothing
+                        | returning
                         | pun, created, public_key_pem, private_key, data""".trimMargin(),
                 Tuple.of(pun, keypair.first, keypair.second, Json.create( actorData ))
             )
-            .map { pgRowSet ->
-                mapRowToActor(pgRowSet.iterator().next())
+            .flatMapMaybe { pgRowSet ->
+                if( pgRowSet.size() != 0 ) {
+                    Maybe.just( mapRowToActor(pgRowSet.iterator().next()) )
+                }
+                else {
+                    Maybe.empty()
+                }
             }
     }
 

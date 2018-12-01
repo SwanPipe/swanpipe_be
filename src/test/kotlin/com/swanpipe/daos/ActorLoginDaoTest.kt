@@ -59,11 +59,11 @@ object ActorLoginDaoTest {
 
         InitPg.pool(vertx)
         LoginDao.createLogin("fizzlebottom", "secret", null)
-            .flatMapSingle { _ ->
+            .flatMap { _ ->
                 val keypair = genRsa2048()
                 ActorDao.createActor("fizzy", keypair, null)
             }
-            .flatMap { _ ->
+            .flatMapSingle { _ ->
                 ActorLoginDao.linkActorLogin("fizzlebottom", "fizzy", false)
             }
             .flatMap { link ->

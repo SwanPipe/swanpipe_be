@@ -62,7 +62,7 @@ object ActorDaoTest {
         ActorDao.createActor("fugly", keypair, null)
             .flatMap { actor ->
                 assertThat(actor.pun).isEqualTo("fugly")
-                ActorDao.getActor(actor.pun).toSingle()
+                ActorDao.getActor(actor.pun)
             }
             .subscribe(
                 { actor ->
@@ -74,6 +74,36 @@ object ActorDaoTest {
                 },
                 {
                     testContext.failNow(it)
+                },
+                {
+                    testContext.verify {
+                        fail( "actor fugly should have been created" )
+                    }
+                }
+            )
+    }
+
+    @DisplayName("Test create existing actor")
+    @Test
+    fun testCreateExistingActor(vertx: Vertx, testContext: VertxTestContext) {
+
+        InitPg.pool(vertx)
+        val keypair = genRsa2048()
+        ActorDao.createActor("fugly", keypair, null)
+            .flatMap { _ ->
+                ActorDao.createActor("fugly", keypair, null)
+            }
+            .subscribe(
+                { _ ->
+                    testContext.verify {
+                        fail( "actor fugly should NOT have been created" )
+                    }
+                },
+                {
+                    testContext.failNow(it)
+                },
+                {
+                    testContext.completeNow()
                 }
             )
     }
@@ -105,7 +135,7 @@ object ActorDaoTest {
         InitPg.pool(vertx)
         val keypair = genRsa2048()
         ActorDao.createActor("foo", keypair, null)
-            .flatMap { actor ->
+            .flatMapSingle { actor ->
                 ActorDao.setActorData(actor.pun, arrayOf("name"), "a fun user")
             }
             .subscribe { data ->
