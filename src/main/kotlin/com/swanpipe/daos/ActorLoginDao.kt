@@ -15,8 +15,11 @@
 
 package com.swanpipe.daos
 
+import com.swanpipe.daos.ActorDao.mapRowToActor
+import com.swanpipe.daos.LoginDao.mapRowToLogin
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
+import com.swanpipe.utils.DbResult
 import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.*
 import io.reactivex.Maybe
@@ -131,40 +134,52 @@ object ActorLoginDao {
         owner: Boolean,
         keypair: Pair<String, Buffer>,
         actorData: JsonObject?
-    ) : Maybe<Triple<String,String,Boolean>> {
-        return Maybe.create { emitter ->
-            var login = false
-            var actor = false
+    ) : Single<DbResult<Triple<Login,Actor,Boolean>>> {
+        return Single.create { emitter ->
+            var login : Login? = null
+            var actor : Actor? = null
+            var owned : Boolean? = null
             PgPool( Db.pgPool )
                 .rxBegin()
                 .flatMapCompletable { tx ->
                     LoginDao.createLogin( loginId, password, loginData, tx )
                         .flatMap {
                             if( it.size() != 0 ) {
-                                login = true
+                                login = mapRowToLogin( it.iterator().next() )
                             }
                             ActorDao.createActor( pun, keypair, actorData, tx )
                         }
                         .flatMap {
                             if( it.size() != 0 ) {
-                                actor = true
+                                actor = mapRowToActor( it.iterator().next() )
                             }
                             linkActorLogin(loginId,pun,owner, tx)
                         }
                         .flatMapCompletable {
+                            if( it.size() != 0 ) {
+                                owned = it.iterator().next().getBoolean( "owner" )
+                            }
                             tx.rxCommit()
                         }
                 }
                 .subscribe(
                     {
-                        if( !login ) {
-                            emitter.onComplete()
+                        if( login == null ) {
+                            emitter.onSuccess( DbResult( "loginId" ) )
                         }
-                        else if (!actor) {
-                            emitter.onComplete()
+                        else if( actor == null ) {
+                            emitter.onSuccess( DbResult( "pun" ) )
+                        }
+                        else if( owned == null ) {
+                            emitter.onSuccess( DbResult( "owner" ) )
                         }
                         else {
-                            emitter.onSuccess( Triple( loginId, pun, owner ) )
+                            emitter.onSuccess(
+                                DbResult( Triple(
+                                    login!!,
+                                    actor!!,
+                                    owned!!
+                                ) ) )
                         }
                     },
                     {
