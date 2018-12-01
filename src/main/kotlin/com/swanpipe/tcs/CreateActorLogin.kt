@@ -58,11 +58,16 @@ class CreateActorLogin {
                     .put(ActorLoginActions.OWNER, owner)
                 ActorLoginActions.createActorLogin(json)
                     .subscribe(
-                        { triple ->
-                            if (triple.third) {
-                                process.write("Created actor of '${triple.second}' with login-id ${triple.first} as owner\n")
-                            } else {
-                                process.write("Created actor of '${triple.second}' with login-id ${triple.first}\n")
+                        { dbResult ->
+                            if( dbResult.conflict != null ) {
+                                if (dbResult.result!!.third) {
+                                    process.write("Created actor of '${dbResult.result!!.second}' with login-id ${dbResult.result!!.first} as owner\n")
+                                } else {
+                                    process.write("Created actor of '${dbResult.result!!.second}' with login-id ${dbResult.result!!.first}\n")
+                                }
+                            }
+                            else {
+                                process.write( "Conflict creating ${dbResult.conflict}")
                             }
                             process.end()
                         },

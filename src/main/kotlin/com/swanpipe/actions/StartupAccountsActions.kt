@@ -86,8 +86,13 @@ fun createStartupActorLogins( saConfig: JsonObject) : Single<Boolean> {
                 .flatMap { actorLogin ->
                     ActorLoginActions.createActorLogin( actorLogin as JsonObject ).toFlowable()
                 }
-                .map { result ->
-                    appLogger.info { "Created login ${result.first} with actor ${result.second}" }
+                .map { dbResult ->
+                    if( dbResult.conflict != null ) {
+                        appLogger.info { "Created login ${dbResult.result!!.first.id} with actor ${dbResult.result!!.second.pun}" }
+                    }
+                    else {
+                        appLogger.error { "Conflict creating ${dbResult.conflict}" }
+                    }
                 }
                 .subscribe(
                     { },

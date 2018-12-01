@@ -81,51 +81,6 @@ object ActorLoginDao {
             )
     }
 
-    fun createActorLogin(
-        loginId: String,
-        password: String,
-        loginData: JsonObject?,
-        pun: String,
-        owner: Boolean,
-        keypair: Pair<String, Buffer>,
-        actorData: JsonObject?
-    ): Single<Triple<String, String, Boolean>> {
-        val ld = loginData?.let { loginData } ?:kotlin.run { JsonObject() }
-        val ad = actorData?.let { actorData } ?:kotlin.run { JsonObject() }
-        val tuple = Tuple.of(loginId, password, pun, keypair.first, keypair.second)
-        tuple.addBoolean( owner )
-        tuple.delegate.addJson( Json.create( ld ) )
-        tuple.delegate.addJson( Json.create( ad ) )
-        return PgClient(Db.pgPool).rxPreparedQuery(
-            """
-                with login_insert as (
-                insert into ${table("login")}
-                        ( id, password, data )
-                        values ($1, $2, $7)
-                ),
-                actor_insert as (
-                insert into ${table("actor")}
-                        ( pun, public_key_pem, private_key, data )
-                        values ( $3, $4, $5, $8 )
-                )
-                insert into ${table("login_actor_link")}
-                        ( login_id, pun, owner )
-                        values
-                        ( $1, $3, $6 )
-                returning login_id, pun, owner
-            """.trimIndent(),
-            tuple
-        )
-            .map { pgRowSet ->
-                val row = pgRowSet.iterator().next()
-                Triple(
-                    row.getString("login_id"),
-                    row.getString("pun"),
-                    row.getBoolean("owner")
-                )
-            }
-    }
-
     fun createActorLoginTx(
         loginId: String,
         password: String,

@@ -16,7 +16,10 @@
 
 package com.swanpipe.actions
 
+import com.swanpipe.daos.Actor
 import com.swanpipe.daos.ActorLoginDao
+import com.swanpipe.daos.Login
+import com.swanpipe.utils.DbResult
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
 
@@ -36,7 +39,7 @@ object ActorLoginActions {
         return actorLogin
     }
 
-    fun createActorLogin(actorLogin: JsonObject): Single<Triple<String, String, Boolean>> {
+    fun createActorLogin(actorLogin: JsonObject): Single<DbResult<Triple<Login, Actor, Boolean>>> {
         return Single.just(actorLogin)
             .map {
                 prepareNewActorLogin(it)
@@ -46,7 +49,7 @@ object ActorLoginActions {
                 ActorActions.prepareNewActor(it)
             }
             .flatMap {
-                ActorLoginDao.createActorLogin(
+                ActorLoginDao.createActorLoginTx(
                     it.first.getString(LoginActions.ID),
                     it.first.getString(LoginActions.PASSWORD),
                     it.first.getJsonObject( LOGINDATA ),

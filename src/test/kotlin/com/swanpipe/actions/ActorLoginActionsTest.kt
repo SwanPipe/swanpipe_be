@@ -63,11 +63,11 @@ object ActorLoginActionsTest {
             .put("pun", "bar")
         ActorLoginActions.createActorLogin(json)
             .subscribe(
-                { triple ->
+                { dbResult ->
                     testContext.verify {
-                        assertThat(triple.first).isEqualTo("foo")
-                        assertThat(triple.second).isEqualTo("bar")
-                        assertThat(triple.third).isTrue()
+                        assertThat(dbResult.result!!.first.id).isEqualTo("foo")
+                        assertThat(dbResult.result!!.second.pun).isEqualTo("bar")
+                        assertThat(dbResult.result!!.third).isTrue()
                     }
                     testContext.completeNow()
                 },

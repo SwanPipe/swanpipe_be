@@ -87,47 +87,6 @@ object ActorLoginDaoTest {
             )
     }
 
-    @DisplayName("Test create login/actor")
-    @Test
-    fun testCreateActorLogin(vertx: Vertx, testContext: VertxTestContext) {
-        InitPg.pool(vertx)
-        val keypair = genRsa2048()
-        ActorLoginDao.createActorLogin(
-            loginId = "furry",
-            password = "secret",
-            loginData = null,
-            pun = "fuzzy",
-            owner = true,
-            keypair = keypair,
-            actorData = null
-        )
-            .flatMap {
-                testContext.verify {
-                    assertThat(it.third).isTrue()
-                }
-                LoginDao.getLogin("furry").toSingle()
-            }
-            .flatMap { login ->
-                testContext.verify {
-                    assertThat(login.id).isEqualTo("furry")
-                    assertThat(login.enabled).isEqualTo(true)
-                }
-                ActorDao.getActor("fuzzy").toSingle()
-            }
-            .subscribe(
-                { actor ->
-                    testContext.verify {
-                        assertThat(actor.pun).isEqualTo("fuzzy")
-                        assertThat(actor.publicKeyPem).isNotBlank()
-                    }
-                    testContext.completeNow()
-                },
-                {
-                    testContext.failNow(it)
-                }
-            )
-    }
-
     @DisplayName("Test create login/actor transaction")
     @Test
     fun testCreateActorLoginTx(vertx: Vertx, testContext: VertxTestContext) {
@@ -168,7 +127,6 @@ object ActorLoginDaoTest {
                 }
             )
     }
-
 
     @DisplayName( "Test get Login Actor Link" )
     @Test
