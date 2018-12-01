@@ -48,8 +48,12 @@ object LoginDao {
     }
 
     fun createLogin(id: String, password: String, data: JsonObject? ): Maybe<Login> {
+        return createLogin( id, password, data, PgClient( Db.pgPool ) )
+    }
+
+    fun createLogin( id: String, password: String, data: JsonObject?, pg: PgClient ) : Maybe<Login> {
         val loginData = data?.let { data } ?: run { JsonObject() }
-        return PgClient(Db.pgPool)
+        return pg
             .rxPreparedQuery(
                 """insert into ${table("login")}
                         | ( id, password, data )
