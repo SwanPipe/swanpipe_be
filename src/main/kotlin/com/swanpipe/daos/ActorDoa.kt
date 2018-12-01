@@ -48,8 +48,12 @@ object ActorDao {
     }
 
     fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?): Maybe<Actor> {
+        return createActor(pun,keypair,data,PgClient( Db.pgPool ))
+    }
+
+    fun createActor(pun: String, keypair: Pair<String, Buffer>, data: JsonObject?, pg: PgClient ) : Maybe<Actor> {
         val actorData = data?.let { data }?:run { JsonObject() }
-        return PgClient(Db.pgPool)
+        return pg
             .rxPreparedQuery(
                 """insert into ${table("actor")}
                         | ( pun, public_key_pem, private_key, data )
