@@ -61,7 +61,7 @@ object ConfigDaoTest {
     fun testSetAndGet( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool(vertx)
         LoginDao.createLogin("fuzzy", "secret", null )
-            .flatMap { login ->
+            .flatMapSingle { login ->
                 LoginDao.setLoginData( login.id, arrayOf("roles"), Json.create( JsonArray().add( "admin" ) ) )
             }
             .flatMap { _ ->
@@ -92,7 +92,7 @@ object ConfigDaoTest {
     fun testSetAndGetNoAdmin( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool(vertx)
         LoginDao.createLogin("furry", "secret", null)
-            .flatMap { _ ->
+            .flatMapSingle { _ ->
                 val json = json { obj( "foo" to "bar" ) }
                 ConfigDao.setConfig( "aconfig2", json, "furry", "admin" )
             }
@@ -111,7 +111,7 @@ object ConfigDaoTest {
     fun testUpdateAndGet( vertx: Vertx, testContext: VertxTestContext ) {
         InitPg.pool(vertx)
         LoginDao.createLogin("fickle", "secret", null)
-            .flatMap { login ->
+            .flatMapSingle { login ->
                 LoginDao.setLoginData( login.id, arrayOf("roles"), Json.create( JsonArray().add( "admin" ) ) )
             }
             .flatMap { _ ->

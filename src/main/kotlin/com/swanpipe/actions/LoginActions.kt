@@ -102,8 +102,8 @@ object LoginActions {
 
     }
 
-    fun createLogin(login: JsonObject): Single<Login> {
-        return Single.just(login)
+    fun createLogin(login: JsonObject): Maybe<Login> {
+        return Maybe.just(login)
             .map {
                 validateNewLogin(it)
                 prepareNewLogin(it)

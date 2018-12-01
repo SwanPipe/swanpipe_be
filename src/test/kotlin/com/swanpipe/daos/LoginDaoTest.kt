@@ -62,7 +62,7 @@ object LoginDaoTest {
         LoginDao.createLogin("fizzlebottom", "secret", null )
             .flatMap { login ->
                 assertThat(login.id).isEqualTo("fizzlebottom")
-                LoginDao.getLogin(login.id).toSingle()
+                LoginDao.getLogin(login.id)
             }
             .subscribe(
                 { login ->
@@ -75,6 +75,39 @@ object LoginDaoTest {
                 },
                 {
                     testContext.failNow(it)
+                },
+                {
+                    testContext.verify {
+                        fail( "this should complete with at least one insertion" )
+                    }
+                }
+            )
+    }
+
+    /**
+     * This test differs from [testCreateLogin] in that the creation of an existing
+     * login should result in an empty Maybe (i.e. onSuccess with no onNext).
+     */
+    @DisplayName("Test create existing login")
+    @Test
+    fun testCreateExistingLogin(vertx: Vertx, testContext: VertxTestContext) {
+
+        InitPg.pool(vertx)
+        LoginDao.createLogin("foo2", "secret", null )
+            .flatMap { _ ->
+                LoginDao.createLogin( "foo2", "secret", null )
+            }
+            .subscribe(
+                { _ ->
+                    testContext.verify {
+                        fail( "this login should faile because foo2 already exists")
+                    }
+                },
+                {
+                    testContext.failNow(it)
+                },
+                {
+                    testContext.completeNow()
                 }
             )
     }
@@ -105,7 +138,7 @@ object LoginDaoTest {
     fun testSetLoginData(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         LoginDao.createLogin("foo", "secret", null)
-            .flatMap { login ->
+            .flatMapSingle { login ->
                 LoginDao.setLoginData(login.id, arrayOf("loginType"), "normal")
             }
             .subscribe { data ->
@@ -121,7 +154,7 @@ object LoginDaoTest {
     fun testSetLoginDataObject(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         LoginDao.createLogin("foo", "secret", null)
-            .flatMap { login ->
+            .flatMapSingle { login ->
                 LoginDao.setLoginData(login.id, arrayOf("loginCount"), Json.create(JsonObject().put("bar", "4000")))
             }
             .subscribe { data ->
@@ -137,7 +170,7 @@ object LoginDaoTest {
     fun testSetLoginDataInt(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         LoginDao.createLogin("foo", "secret", null)
-            .flatMap { login ->
+            .flatMapSingle { login ->
                 LoginDao.setLoginData(login.id, arrayOf("loginCount"), Integer(4000))
             }
             .subscribe { data ->
@@ -153,7 +186,7 @@ object LoginDaoTest {
     fun testSetLoginDataBoolean(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         LoginDao.createLogin("foo", "secret", null)
-            .flatMap { login ->
+            .flatMapSingle { login ->
                 LoginDao.setLoginData(login.id, arrayOf("acceptsFollowers"), false)
             }
             .subscribe { data ->
@@ -169,7 +202,7 @@ object LoginDaoTest {
     fun testEnableLogin(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         LoginDao.createLogin("foo", "secret", null)
-            .flatMap { _ ->
+            .flatMapSingle { _ ->
                 LoginDao.enableLogin("foo", false)
             }
             .flatMapMaybe { _ ->

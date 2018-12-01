@@ -19,6 +19,7 @@ import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.PgClient
+import io.reactiverse.reactivex.pgclient.PgRowSet
 import io.reactiverse.reactivex.pgclient.Row
 import io.reactiverse.reactivex.pgclient.Tuple
 import io.reactivex.Maybe
@@ -46,18 +47,26 @@ object LoginDao {
         )
     }
 
-    fun createLogin(id: String, password: String, data: JsonObject? ): Single<Login> {
+    fun createLogin(id: String, password: String, data: JsonObject? ): Maybe<Login> {
         val loginData = data?.let { data } ?: run { JsonObject() }
         return PgClient(Db.pgPool)
             .rxPreparedQuery(
                 """insert into ${table("login")}
                         | ( id, password, data )
-                        | values ($1,$2,$3) returning
-                        | id, password, enabled, created, data""".trimMargin(),
+                        | values ($1,$2,$3)
+                        | on conflict do nothing
+                        | returning
+                        | id, password, enabled, created, data
+                        | """.trimMargin(),
                 Tuple.of(id, password, Json.create( loginData ))
             )
-            .map { pgRowSet ->
-                mapRowToLogin(pgRowSet.iterator().next())
+            .flatMapMaybe<Login> { pgRowSet ->
+                if( pgRowSet.size() != 0 ) {
+                    Maybe.just( mapRowToLogin(pgRowSet.iterator().next()) )
+                }
+                else {
+                    Maybe.empty()
+                }
             }
     }
 

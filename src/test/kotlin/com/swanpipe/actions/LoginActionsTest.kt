@@ -222,7 +222,7 @@ object LoginActionsTest {
             .put("id", "foo")
             .put("password", "secret")
         LoginActions.createLogin(json)
-            .flatMapMaybe {
+            .flatMap {
                 LoginActions.checkLogin("foo", "secret")
             }
             .subscribe(
@@ -253,7 +253,7 @@ object LoginActionsTest {
             .put("id", "foo")
             .put("password", "secret")
         LoginActions.createLogin(json)
-            .flatMapMaybe {
+            .flatMap {
                 LoginActions.checkLogin("foo", "wrongsecret")
             }
             .subscribe(
@@ -283,7 +283,7 @@ object LoginActionsTest {
             .put("id", "foo")
             .put("password", "secret")
         LoginActions.createLogin(json)
-            .flatMap { _ ->
+            .flatMapSingle { _ ->
                 LoginDao.enableLogin("foo", false)
             }
             .flatMapMaybe {
