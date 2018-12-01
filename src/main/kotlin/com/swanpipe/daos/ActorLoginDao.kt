@@ -18,9 +18,7 @@ package com.swanpipe.daos
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
 import io.reactiverse.pgclient.data.Json
-import io.reactiverse.reactivex.pgclient.PgClient
-import io.reactiverse.reactivex.pgclient.Row
-import io.reactiverse.reactivex.pgclient.Tuple
+import io.reactiverse.reactivex.pgclient.*
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.vertx.core.buffer.Buffer
@@ -54,7 +52,11 @@ object ActorLoginDao {
     }
 
     fun linkActorLogin(loginId: String, pun: String, owner: Boolean): Single<Triple<String, String, Boolean>> {
-        return PgClient(Db.pgPool)
+        return linkActorLogin( loginId, pun, owner, PgClient( Db.pgPool ) )
+    }
+
+    fun linkActorLogin(loginId: String, pun: String, owner: Boolean, pg: PgClient): Single<Triple<String, String, Boolean>> {
+        return pg
             .rxPreparedQuery(
                 """insert into ${table("login_actor_link")}
                         | ( login_id, pun, owner )
@@ -120,6 +122,26 @@ object ActorLoginDao {
                 )
             }
     }
+
+/*    fun createActorLoginTx(
+        loginId: String,
+        password: String,
+        loginData: JsonObject?,
+        pun: String,
+        owner: Boolean,
+        keypair: Pair<String, Buffer>,
+        actorData: JsonObject?
+    ) : Single<Triple<String,String,Boolean>> {
+        val pg = PgPool( Db.pgPool )
+        return pg
+            .rxBegin()
+            .flatMapMaybe {
+                LoginDao.createLogin( loginId, password, loginData, pg )
+            }
+            .flatMap {
+                ActorDao.createActor( pun, keypair, actorData, pg )
+            }
+    }*/
 
     fun getLoginActorLink( id: String ) : Maybe<LoginActorLink> {
         return PgClient(Db.pgPool)
