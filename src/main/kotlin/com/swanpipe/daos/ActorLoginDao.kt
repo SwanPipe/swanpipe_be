@@ -15,12 +15,12 @@
 
 package com.swanpipe.daos
 
+import com.github.kittinunf.result.Result
 import com.swanpipe.daos.ActorDao.mapRowToActor
 import com.swanpipe.daos.LoginDao.mapRowToLogin
+import com.swanpipe.utils.DaoConflict
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.Db.table
-import com.swanpipe.utils.DbResult
-import io.reactiverse.pgclient.data.Json
 import io.reactiverse.reactivex.pgclient.*
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -95,7 +95,7 @@ object ActorLoginDao {
         owner: Boolean,
         keypair: Pair<String, Buffer>,
         actorData: JsonObject?
-    ) : Single<DbResult<ActorLogin>> {
+    ) : Single<Result<ActorLogin,DaoConflict>> {
         return Single.create { emitter ->
             var login : Login? = null
             var actor : Actor? = null
@@ -126,21 +126,16 @@ object ActorLoginDao {
                 .subscribe(
                     {
                         if( login == null ) {
-                            emitter.onSuccess( DbResult( "loginId" ) )
+                            emitter.onSuccess( Result.error( DaoConflict( "loginId" ) ) )
                         }
                         else if( actor == null ) {
-                            emitter.onSuccess( DbResult( "pun" ) )
+                            emitter.onSuccess( Result.error( DaoConflict( "pun" ) ) )
                         }
                         else if( owned == null ) {
-                            emitter.onSuccess( DbResult( "owner" ) )
+                            emitter.onSuccess( Result.error( DaoConflict( "owner" ) ) )
                         }
                         else {
-                            emitter.onSuccess(
-                                DbResult( ActorLogin(
-                                    login!!,
-                                    actor!!,
-                                    owned!!
-                                ) ) )
+                            emitter.onSuccess( Result.of { ActorLogin( login!!, actor!!, owner ) } )
                         }
                     },
                     {

@@ -54,3 +54,5 @@ object Db {
         } ?: false
     }
 }
+
+class DaoConflict( val conflict: String ) : kotlin.Exception()

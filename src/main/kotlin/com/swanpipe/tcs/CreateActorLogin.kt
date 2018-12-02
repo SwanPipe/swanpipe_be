@@ -58,17 +58,20 @@ class CreateActorLogin {
                     .put(ActorLoginActions.OWNER, owner)
                 ActorLoginActions.createActorLogin(json)
                     .subscribe(
-                        { dbResult ->
-                            if( dbResult.conflict != null ) {
-                                if (dbResult.result!!.owner) {
-                                    process.write("Created actor of '${dbResult.result!!.actor}' with login-id ${dbResult.result!!.login} as owner\n")
-                                } else {
-                                    process.write("Created actor of '${dbResult.result!!.actor}' with login-id ${dbResult.result!!.login}\n")
+                        { result ->
+                            result.fold(
+                                {
+                                    val (login,actor,owned) = it
+                                    if (owned) {
+                                        process.write("Created actor of '${actor.pun}' with login-id ${login.id} as owner\n")
+                                    } else {
+                                        process.write("Created actor of '${actor.pun}' with login-id ${login.id}\n")
+                                    }
+                                },
+                                {
+                                    process.write( "Conflict creating ${it.conflict}\n")
                                 }
-                            }
-                            else {
-                                process.write( "Conflict creating ${dbResult.conflict}")
-                            }
+                            )
                             process.end()
                         },
                         {

@@ -16,11 +16,10 @@
 
 package com.swanpipe.actions
 
-import com.swanpipe.daos.Actor
+import com.github.kittinunf.result.Result
 import com.swanpipe.daos.ActorLogin
 import com.swanpipe.daos.ActorLoginDao
-import com.swanpipe.daos.Login
-import com.swanpipe.utils.DbResult
+import com.swanpipe.utils.DaoConflict
 import io.reactivex.Single
 import io.vertx.core.json.JsonObject
 
@@ -40,26 +39,21 @@ object ActorLoginActions {
         return actorLogin
     }
 
-    fun createActorLogin(actorLogin: JsonObject): Single<DbResult<ActorLogin>> {
-        return Single.just(actorLogin)
-            .map {
-                prepareNewActorLogin(it)
-                ActorActions.validateNewActor(it)
-                LoginActions.validateNewLogin(it)
-                LoginActions.prepareNewLogin(it)
-                ActorActions.prepareNewActor(it)
-            }
-            .flatMap {
-                ActorLoginDao.createActorLoginTx(
-                    it.first.getString(LoginActions.ID),
-                    it.first.getString(LoginActions.PASSWORD),
-                    it.first.getJsonObject( LOGINDATA ),
-                    it.first.getString(ActorActions.PUN),
-                    it.first.getBoolean(OWNER),
-                    it.second,
-                    it.first.getJsonObject(ACTORDATA)
-                )
-            }
+    fun createActorLogin(actorLogin: JsonObject): Single<Result<ActorLogin,DaoConflict>> {
+        prepareNewActorLogin( actorLogin )
+        ActorActions.validateNewActor( actorLogin )
+        LoginActions.validateNewLogin( actorLogin )
+        LoginActions.prepareNewLogin( actorLogin )
+        val actorPrep = ActorActions.prepareNewActor( actorLogin )
+        return ActorLoginDao.createActorLoginTx(
+            actorLogin.getString(LoginActions.ID),
+            actorLogin.getString(LoginActions.PASSWORD),
+            actorLogin.getJsonObject( LOGINDATA ),
+            actorLogin.getString(ActorActions.PUN),
+            actorLogin.getBoolean(OWNER),
+            actorPrep.second,
+            actorLogin.getJsonObject(ACTORDATA)
+        )
     }
 
 }

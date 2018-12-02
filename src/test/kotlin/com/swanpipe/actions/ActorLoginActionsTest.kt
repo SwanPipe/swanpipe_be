@@ -63,11 +63,19 @@ object ActorLoginActionsTest {
             .put("pun", "bar")
         ActorLoginActions.createActorLogin(json)
             .subscribe(
-                { dbResult ->
+                { result ->
                     testContext.verify {
-                        assertThat(dbResult.result!!.login.id).isEqualTo("foo")
-                        assertThat(dbResult.result!!.actor.pun).isEqualTo("bar")
-                        assertThat(dbResult.result!!.owner).isTrue()
+                        result.fold(
+                            {
+                                val (login,actor,owner) = it
+                                assertThat(login.id).isEqualTo("foo")
+                                assertThat(actor.pun).isEqualTo("bar")
+                                assertThat(owner).isTrue()
+                            },
+                            {
+                                fail( it )
+                            }
+                        )
                     }
                     testContext.completeNow()
                 },
