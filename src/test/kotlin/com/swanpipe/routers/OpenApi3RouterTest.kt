@@ -19,23 +19,23 @@ package com.swanpipe.routers
 import com.swanpipe.InitHttp
 import com.swanpipe.InitPg
 import com.swanpipe.actions.ActorLoginActions
-import com.swanpipe.daos.ActorLoginDao
 import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.Db
 import com.swanpipe.utils.HttpInfo
-import com.swanpipe.utils.genRsa2048
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
+import io.vertx.reactivex.ext.auth.jwt.JWTAuth
 import io.vertx.reactivex.ext.web.client.WebClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.OffsetDateTime
 
 @DisplayName( "Test of open API 3 router" )
 @ExtendWith( VertxExtension::class )
@@ -203,6 +203,70 @@ object OpenApi3RouterTest {
                 },
                 {
                    testContext.failNow( it )
+                }
+            )
+    }
+
+    @DisplayName( "Test NBF token" )
+    @Test
+    fun testNbfToken( vertx: Vertx, testContext: VertxTestContext ) {
+        val jwtAuthConfig = json {
+            obj(
+                "keyStore" to
+                        obj(
+                            "type" to "jceks",
+                            "path" to "jwt.jceks",
+                            "password" to "secret"
+                        )
+            )
+        }
+        val jwt = JWTAuth.create(io.vertx.reactivex.core.Vertx(vertx), JWTAuthOptions(jwtAuthConfig))
+        val token= jwt.generateToken(
+            JsonObject()
+                .put("iss", "swanpipe")
+                .put("source", "127.0.0.1")
+                .put("nbf", OffsetDateTime.now().plusSeconds(0).toEpochSecond())
+                .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
+        )
+        verifyNbfToken(jwt,token)
+            .subscribe(
+                {
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow( it )
+                }
+            )
+    }
+
+    @DisplayName( "Test bad NBF token" )
+    @Test
+    fun testBadNbfToken( vertx: Vertx, testContext: VertxTestContext ) {
+        val jwtAuthConfig = json {
+            obj(
+                "keyStore" to
+                        obj(
+                            "type" to "jceks",
+                            "path" to "jwt.jceks",
+                            "password" to "secret"
+                        )
+            )
+        }
+        val jwt = JWTAuth.create(io.vertx.reactivex.core.Vertx(vertx), JWTAuthOptions(jwtAuthConfig))
+        val token= jwt.generateToken(
+            JsonObject()
+                .put("iss", "swanpipe")
+                .put("source", "127.0.0.1")
+                .put("nbf", OffsetDateTime.now().plusSeconds(10).toEpochSecond())
+                .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
+        )
+        verifyNbfToken(jwt,token)
+            .subscribe(
+                {
+                    testContext.failNow( RuntimeException( "this should have failed" ) )
+                },
+                {
+                    testContext.completeNow()
                 }
             )
     }

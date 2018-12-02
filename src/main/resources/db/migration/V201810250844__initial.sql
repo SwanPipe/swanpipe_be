@@ -89,6 +89,5 @@ insert into config (id, data) values ('signUp',
   '{'
   '  "allowOpenRegistration":   false,'
   '  "minSignupSeconds" :       20,'
-  '  "maxSignupSeconds" :       60,'
   '  "verifyLoginEmailAddress": false'
   '}'::jsonb);

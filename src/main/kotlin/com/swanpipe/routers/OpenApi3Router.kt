@@ -31,6 +31,7 @@ import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.kotlin.ext.web.api.contract.RouterFactoryOptions
 import io.vertx.reactivex.core.Vertx
+import io.vertx.reactivex.ext.auth.User
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth
 import io.vertx.reactivex.ext.web.Router
 import io.vertx.reactivex.ext.web.RoutingContext
@@ -156,7 +157,7 @@ private fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
         getConfig( SIGNUP_CONFIG_ID )
             .subscribe(
                 { config ->
-                    val maxSeconds = config.data.getLong( "maxSignupSeconds" )
+                    val minSeconds = config.data.getLong( "minSignupSeconds" )
                     val openRegistration = config.data.getBoolean( "allowOpenRegistration" )
                     appLogger.error { "action=signupToken result=success" }
                     rc.response()
@@ -167,7 +168,8 @@ private fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                                         JsonObject()
                                             .put("iss", "swanpipe")
                                             .put("source", sourceIp(rc))
-                                            .put("exp", OffsetDateTime.now().plusSeconds( maxSeconds ).toEpochSecond())
+                                            .put("nbf", OffsetDateTime.now().plusSeconds(minSeconds).toEpochSecond())
+                                            .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
                                     ),
                                     "openRegistration" to openRegistration
                                 )
@@ -186,6 +188,10 @@ private fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                 }
             )
     }
+}
+
+fun verifyNbfToken( jwt: JWTAuth, token: String  ) : Single<User> {
+    return jwt.rxAuthenticate( json { obj( "jwt" to token ) } )
 }
 
 private fun accountInfoHandler() : (RoutingContext) -> Unit {
