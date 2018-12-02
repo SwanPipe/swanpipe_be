@@ -166,6 +166,7 @@ private fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                                     "token" to jwt.generateToken(
                                         JsonObject()
                                             .put("iss", "swanpipe")
+                                            .put("source", sourceIp(rc))
                                             .put("exp", OffsetDateTime.now().plusSeconds( maxSeconds ).toEpochSecond())
                                     ),
                                     "openRegistration" to openRegistration
@@ -269,4 +270,25 @@ private fun <T> handlerSingle(
 
 fun loginId( rc : RoutingContext ) : String {
     return rc.user().principal().getString( "sub" )
+}
+
+fun sourceIp( rc: RoutingContext ) : String {
+    val xheader : String? = rc.request().getHeader( "X-Forwarded-For")
+    xheader?.let {
+        val hosts = it.split( ',' )
+        if( !hosts.isEmpty() ) {
+            if( !hosts[0].isBlank() ) {
+                return hosts[0].trim()
+            }
+            else {
+                return rc.request().remoteAddress().host()
+            }
+        }
+        else {
+            return rc.request().remoteAddress().host()
+        }
+    }
+    ?: run {
+        return rc.request().remoteAddress().host()
+    }
 }
