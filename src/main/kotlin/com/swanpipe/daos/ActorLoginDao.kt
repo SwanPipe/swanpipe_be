@@ -145,6 +145,75 @@ object ActorLoginDao {
         }
     }
 
+    fun createActorLoginTx(
+        loginId: String,
+        password: String,
+        loginData: JsonObject?,
+        pun: String,
+        owner: Boolean,
+        keypair: Pair<String, Buffer>,
+        actorData: JsonObject?,
+        token : String
+    ) : Single<Result<ActorLogin,DaoConflict>> {
+        return Single.create { emitter ->
+            var login : Login? = null
+            var actor : Actor? = null
+            var owned : Boolean? = null
+            var tokenValid = false
+            PgPool( Db.pgPool )
+                .rxBegin()
+                .flatMapCompletable { tx ->
+                    LoginDao.createLogin( loginId, password, loginData, tx )
+                        .flatMap {
+                            if( it.size() != 0 ) {
+                                login = mapRowToLogin( it.iterator().next() )
+                            }
+                            LoginTokenDao.createLoginToken( loginId, token, tx )
+                        }
+                        .flatMap {
+                            if( it.size() != 0 ) {
+                                tokenValid = true
+                            }
+                            ActorDao.createActor( pun, keypair, actorData, tx )
+                        }
+                        .flatMap {
+                            if( it.size() != 0 ) {
+                                actor = mapRowToActor( it.iterator().next() )
+                            }
+                            linkActorLogin(loginId,pun,owner, tx)
+                        }
+                        .flatMapCompletable {
+                            if( it.size() != 0 ) {
+                                owned = it.iterator().next().getBoolean( "owner" )
+                            }
+                            tx.rxCommit()
+                        }
+                }
+                .subscribe(
+                    {
+                        if( login == null ) {
+                            emitter.onSuccess( Result.error( DaoConflict( "loginId" ) ) )
+                        }
+                        else if( !tokenValid ) {
+                            emitter.onSuccess( Result.error( DaoConflict( "login_token" ) ) )
+                        }
+                        else if( actor == null ) {
+                            emitter.onSuccess( Result.error( DaoConflict( "pun" ) ) )
+                        }
+                        else if( owned == null ) {
+                            emitter.onSuccess( Result.error( DaoConflict( "owner" ) ) )
+                        }
+                        else {
+                            emitter.onSuccess( Result.of { ActorLogin( login!!, actor!!, owner ) } )
+                        }
+                    },
+                    {
+                        emitter.onError( it )
+                    }
+                )
+        }
+    }
+
     fun getLoginActorLink( id: String ) : Maybe<LoginActorLink> {
         return PgClient(Db.pgPool)
             .rxPreparedQuery(

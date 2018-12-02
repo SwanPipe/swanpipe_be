@@ -16,6 +16,7 @@
 
 package com.swanpipe.actions
 
+import com.github.kittinunf.result.success
 import com.swanpipe.InitPg
 import com.swanpipe.utils.Db
 import io.vertx.core.Vertx
@@ -55,7 +56,7 @@ object ActorLoginActionsTest {
 
     @DisplayName("Test create actor login action")
     @Test
-    fun testCreateActor(vertx: Vertx, testContext: VertxTestContext) {
+    fun testCreateActorLogin(vertx: Vertx, testContext: VertxTestContext) {
         InitPg.pool(vertx)
         val json = JsonObject()
             .put("id", "foo")
@@ -76,6 +77,72 @@ object ActorLoginActionsTest {
                                 fail( it )
                             }
                         )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
+                }
+            )
+    }
+
+    @DisplayName("Test create actor login action with token")
+    @Test
+    fun testCreateActorLoginWithToken(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        val json = JsonObject()
+            .put("id", "foo")
+            .put("password", "secret")
+            .put("pun", "bar")
+            .put("token", "test_token" )
+        ActorLoginActions.createActorLoginWithToken(json)
+            .subscribe(
+                { result ->
+                    testContext.verify {
+                        result.fold(
+                            {
+                                val (login,actor,owner) = it
+                                assertThat(login.id).isEqualTo("foo")
+                                assertThat(actor.pun).isEqualTo("bar")
+                                assertThat(owner).isTrue()
+                            },
+                            {
+                                fail( it )
+                            }
+                        )
+                    }
+                    testContext.completeNow()
+                },
+                {
+                    testContext.failNow(it)
+                }
+            )
+    }
+
+    @DisplayName("Test create actor login action with bad token")
+    @Test
+    fun testCreateActorLoginWithBadToken(vertx: Vertx, testContext: VertxTestContext) {
+        InitPg.pool(vertx)
+        val json = JsonObject()
+            .put("id", "foo1")
+            .put("password", "secret")
+            .put("pun", "bar1")
+            .put("token", "test_token1" )
+        ActorLoginActions.createActorLoginWithToken(json)
+            .flatMap {
+                val json2 = JsonObject()
+                    .put("id", "foo2")
+                    .put("password", "secret")
+                    .put("pun", "bar2")
+                    .put("token", "test_token1" ) //same token as above... should fail
+                ActorLoginActions.createActorLoginWithToken(json2)
+            }
+            .subscribe(
+                { result ->
+                    testContext.verify {
+                        result.success {
+                            fail( "the same token cannot be used twice")
+                        }
                     }
                     testContext.completeNow()
                 },

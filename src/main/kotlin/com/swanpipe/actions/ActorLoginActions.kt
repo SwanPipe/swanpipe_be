@@ -28,6 +28,7 @@ object ActorLoginActions {
     const val OWNER = "owner"
     const val LOGINDATA = "loginData"
     const val ACTORDATA = "actorData"
+    const val TOKEN = "token"
 
     fun prepareNewActorLogin(actorLogin: JsonObject): JsonObject {
         actorLogin.getBoolean(OWNER) ?: kotlin.run {
@@ -53,6 +54,24 @@ object ActorLoginActions {
             actorLogin.getBoolean(OWNER),
             actorPrep.second,
             actorLogin.getJsonObject(ACTORDATA)
+        )
+    }
+
+    fun createActorLoginWithToken(actorLogin: JsonObject): Single<Result<ActorLogin,DaoConflict>> {
+        prepareNewActorLogin( actorLogin )
+        ActorActions.validateNewActor( actorLogin )
+        LoginActions.validateNewLogin( actorLogin )
+        LoginActions.prepareNewLogin( actorLogin )
+        val actorPrep = ActorActions.prepareNewActor( actorLogin )
+        return ActorLoginDao.createActorLoginTx(
+            actorLogin.getString(LoginActions.ID),
+            actorLogin.getString(LoginActions.PASSWORD),
+            actorLogin.getJsonObject( LOGINDATA ),
+            actorLogin.getString(ActorActions.PUN),
+            actorLogin.getBoolean(OWNER),
+            actorPrep.second,
+            actorLogin.getJsonObject(ACTORDATA),
+            actorLogin.getString(TOKEN)
         )
     }
 

@@ -34,6 +34,14 @@ create table login (
 );
 
 /*
+ Login tokens mitigate sign-up spam.
+ */
+create table login_token (
+  token text not null primary key,
+  login_id text not null references login( id )
+);
+
+/*
  An actor is the public name and address.
  Each actor must be unique system wide.
  */
