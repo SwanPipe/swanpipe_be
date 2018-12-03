@@ -6,7 +6,7 @@ info:
 paths:
   /login:
     post:
-      summary: Returns a list of users.
+      summary: Performs a login
       operationId: login
       security: []
       requestBody:
@@ -118,6 +118,72 @@ paths:
                   openRegistration:
                     type: boolean
                     description: if false, open registration is not allowed
+  /signup:
+    post:
+      summary: Signs a user up for a login account
+      operationId: signup
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - loginId
+                - password
+                - email
+                - pun
+                - token
+              properties:
+                loginId:
+                  type: string
+                  description: the login ID of the user
+                password:
+                  type: string
+                  description: the password to use when logging in
+                email:
+                  type: string
+                  description: email of the login account, possibly used to confirm the account
+                pun:
+                  type: string
+                  description: Preferred User Name (PUN) of the actor to create for the login account
+                token:
+                  type: string
+                  description: signup token acquired using the /signup-token operation
+      responses:
+        201:
+          description: Login account created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - confirmationRequired
+                  - email
+                properties:
+                  confirmationRequired:
+                    type: boolean
+                    description: true if confirmation is required
+                  email:
+                    type: string
+                    description: >
+                      if confirmation is required, this property contains the email
+                      address to which the confirmation was sent.
+        401:
+          description: >
+            Signup was not allowed, possibly due to a bad token or open registration not being open.
+        409:
+          description: Signup of this login account or actor name conflicts with one already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conflict
+                properties:
+                  conflict:
+                    type: string
+                    description: Contains the reason for the conflict, either "loginId" or "pun"
 
 
 components:
