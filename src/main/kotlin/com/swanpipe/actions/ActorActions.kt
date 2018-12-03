@@ -23,7 +23,6 @@ import com.swanpipe.daos.ActorDao
 import com.swanpipe.utils.JsonValidator
 import com.swanpipe.utils.genRsa2048
 import io.reactivex.Maybe
-import io.reactivex.Single
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import java.util.regex.Pattern

@@ -25,7 +25,6 @@ import com.swanpipe.daos.LoginDao.setLoginData
 import com.swanpipe.utils.JsonValidator
 import com.swanpipe.utils.ValidationException
 import io.reactivex.Maybe
-import io.reactivex.Single
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
 import org.mindrot.jbcrypt.BCrypt

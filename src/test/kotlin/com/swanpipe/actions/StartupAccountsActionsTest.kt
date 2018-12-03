@@ -21,18 +21,13 @@ import com.swanpipe.daos.ActorDao
 import com.swanpipe.daos.ConfigDao
 import com.swanpipe.daos.LoginDao
 import com.swanpipe.utils.Db
-import com.swanpipe.utils.ValidationException
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.core.json.array
-import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mindrot.jbcrypt.BCrypt
 
 @DisplayName("Test of login daos")
 @ExtendWith(VertxExtension::class)

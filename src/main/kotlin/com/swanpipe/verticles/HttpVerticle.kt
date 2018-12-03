@@ -18,13 +18,14 @@ package com.swanpipe.verticles
 import com.swanpipe.actions.PUN_CHARS
 import com.swanpipe.routers.activityPubRouter
 import com.swanpipe.routers.apiRouter
-import com.swanpipe.routers.actorRouter
 import com.swanpipe.routers.openApi3Router
-import com.swanpipe.utils.*
+import com.swanpipe.utils.ACCEPT_HEADER
+import com.swanpipe.utils.AUTHORIZATION_HEADER
+import com.swanpipe.utils.CONTENT_TYPE_HEADER
+import com.swanpipe.utils.HttpInfo
 import com.swanpipe.utils.HttpInfo.actualPort
 import io.vertx.core.Future
 import io.vertx.core.http.HttpMethod
-import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.http.HttpServerOptions
 import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.ext.web.Router
