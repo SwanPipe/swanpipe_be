@@ -16,16 +16,14 @@
 
 package com.swanpipe.routers
 
-import com.swanpipe.actions.LoginActions.checkLogin
-import com.swanpipe.daos.ActorLoginDao.getLoginActorLink
-import com.swanpipe.daos.ConfigDao.getConfig
-import com.swanpipe.daos.LoginDao.getLogin
-import com.swanpipe.daos.SIGNUP_CONFIG_ID
+import com.swanpipe.routers.Spv1Handlers.accountInfoHandler
+import com.swanpipe.routers.Spv1Handlers.loginAccountHandler
+import com.swanpipe.routers.Spv1Handlers.loginHandler
+import com.swanpipe.routers.Spv1Handlers.signupTokenHandler
 import com.swanpipe.utils.AUTHORIZATION_HEADER
 import com.swanpipe.utils.appLogger
 import io.reactivex.Maybe
 import io.reactivex.Single
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
@@ -36,7 +34,6 @@ import io.vertx.reactivex.ext.auth.jwt.JWTAuth
 import io.vertx.reactivex.ext.web.Router
 import io.vertx.reactivex.ext.web.RoutingContext
 import io.vertx.reactivex.ext.web.api.contract.openapi3.OpenAPI3RouterFactory
-import java.time.OffsetDateTime
 
 
 fun openApi3Router(vertx: Vertx, parent: Router) {
@@ -94,131 +91,11 @@ fun openApi3Router(vertx: Vertx, parent: Router) {
 }
 
 
-private fun loginAccountHandler(): (RoutingContext) -> Unit {
-    return handlerMaybe(
-        "loginAccount",
-        { rc ->
-            getLogin(loginId(rc))
-        },
-        { rc, login ->
-            rc.response()
-                .end(
-                    json {
-                        obj(
-                            "loginId" to login.id,
-                            "created" to login.created.toString()
-                        )
-                    }.encodePrettily()
-                )
-        },
-        true
-    )
-}
-
-private fun loginHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
-    return { rc ->
-        val data = rc.bodyAsJson
-        val loginId = data.getString("loginId")
-        val password = data.getString("password")
-
-        checkLogin(loginId, password)
-            .subscribe(
-                { _ ->
-                    appLogger.info { "action=login loginId=${loginId} result=success" }
-                    rc.response()
-                        .end(
-                            json {
-                                obj(
-                                    "token" to jwt.generateToken(
-                                        JsonObject()
-                                            .put("sub", loginId)
-                                            .put("iss", "swanpipe")
-                                            .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
-                                    )
-                                )
-                            }.encodePrettily()
-                        )
-                },
-                { e ->
-                    appLogger.error { "action=login loginId=${loginId} result=error : ${e}" }
-                    e.printStackTrace()
-                    rc.response().setStatusCode(500).end()
-                },
-                {
-                    appLogger.info { "action=login loginId=${loginId} result=failed" }
-                    rc.response().setStatusCode(401).end()
-                }
-            )
-    }
-}
-
-private fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
-    return { rc ->
-        getConfig( SIGNUP_CONFIG_ID )
-            .subscribe(
-                { config ->
-                    val minSeconds = config.data.getLong( "minSignupSeconds" )
-                    val openRegistration = config.data.getBoolean( "allowOpenRegistration" )
-                    appLogger.error { "action=signupToken result=success" }
-                    rc.response()
-                        .end(
-                            json {
-                                obj(
-                                    "token" to jwt.generateToken(
-                                        JsonObject()
-                                            .put("iss", "swanpipe")
-                                            .put("source", sourceIp(rc))
-                                            .put("nbf", OffsetDateTime.now().plusSeconds(minSeconds).toEpochSecond())
-                                            .put("exp", OffsetDateTime.now().plusMonths(1).toEpochSecond())
-                                    ),
-                                    "openRegistration" to openRegistration
-                                )
-                            }.encodePrettily()
-                        )
-
-                },
-                { e ->
-                    appLogger.error { "action=signupToken result=error : ${e}" }
-                    e.printStackTrace()
-                    rc.response().setStatusCode(500).end()
-                },
-                {
-                    appLogger.info { "action=signupToken result=failed no signup configuration" }
-                    rc.response().setStatusCode(500).end()
-                }
-            )
-    }
-}
-
 fun verifyNbfToken( jwt: JWTAuth, token: String  ) : Single<User> {
     return jwt.rxAuthenticate( json { obj( "jwt" to token ) } )
 }
 
-private fun accountInfoHandler() : (RoutingContext) -> Unit {
-    return handlerMaybe(
-        "accountInfo",
-        { rc ->
-            getLoginActorLink( loginId(rc) )
-        },
-        { rc, login ->
-            rc.response()
-                .end(
-                    json {
-                        obj(
-                            "loginId" to login.id,
-                            "created" to login.created.toString(),
-                            "enabled" to login.enabled,
-                            "data" to login.data,
-                            "actors" to login.actors
-                        )
-                    }.encodePrettily()
-                )
-        },
-        true
-    )
-}
-
-private fun <T> handlerMaybe(
+fun <T> handlerMaybe(
     actionName: String,
     action: (RoutingContext) -> Maybe<T>,
     responder: (RoutingContext, T) -> Unit,
@@ -247,7 +124,7 @@ private fun <T> handlerMaybe(
     }
 }
 
-private fun <T> handlerSingle(
+fun <T> handlerSingle(
     actionName: String,
     action: (RoutingContext) -> Single<T>,
     responder: (RoutingContext, T) -> Unit,
