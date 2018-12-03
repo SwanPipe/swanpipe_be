@@ -61,28 +61,6 @@ object OpenApi3RouterTest {
         testContext.completeNow()
     }
 
-    @DisplayName( "Test Signup Token" )
-    @Test
-    fun testSignupToken( vertx: Vertx,testContext: VertxTestContext ) {
-        InitPg.pool( vertx )
-        val web = WebClient.create( io.vertx.reactivex.core.Vertx( vertx ) )
-        web.get( HttpInfo.actualPort, HttpInfo.host, "/spv1/signup-token" )
-            .rxSend()
-            .subscribe(
-                { response ->
-                    testContext.verify {
-                        assertThat( response.statusCode() ).isEqualTo( 200 )
-                        assertThat( response.bodyAsJsonObject().getString( "token" ) ).isNotBlank()
-                        assertThat( response.bodyAsJsonObject().getBoolean( "openRegistration" ) ).isFalse()
-                    }
-                    testContext.completeNow()
-                },
-                {
-                   testContext.failNow( it )
-                }
-            )
-    }
-
     @DisplayName( "Test NBF token" )
     @Test
     fun testNbfToken( vertx: Vertx, testContext: VertxTestContext ) {
