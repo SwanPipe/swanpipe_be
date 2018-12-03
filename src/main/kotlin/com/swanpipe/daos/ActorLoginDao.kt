@@ -48,6 +48,10 @@ data class ActorLogin(
     val owner: Boolean
 )
 
+const val LOGINID = "loginID"
+const val PUN = "pun"
+const val OWNER = "owner"
+
 object ActorLoginDao {
 
     fun mapRowToLoginActorLink(row: Row): LoginActorLink {
@@ -126,13 +130,13 @@ object ActorLoginDao {
                 .subscribe(
                     {
                         if( login == null ) {
-                            emitter.onSuccess( Result.error( DaoConflict( "loginId" ) ) )
+                            emitter.onSuccess( Result.error( DaoConflict( LOGINID ) ) )
                         }
                         else if( actor == null ) {
-                            emitter.onSuccess( Result.error( DaoConflict( "pun" ) ) )
+                            emitter.onSuccess( Result.error( DaoConflict( PUN ) ) )
                         }
                         else if( owned == null ) {
-                            emitter.onSuccess( Result.error( DaoConflict( "owner" ) ) )
+                            emitter.onSuccess( Result.error( DaoConflict( OWNER ) ) )
                         }
                         else {
                             emitter.onSuccess( Result.of { ActorLogin( login!!, actor!!, owner ) } )

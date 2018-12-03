@@ -60,7 +60,7 @@ fun signupTokenHandler(jwt: JWTAuth): (RoutingContext) -> Unit {
                     rc.response().setStatusCode(500).end()
                 },
                 {
-                    appLogger.info { "action=signupToken result=failed no signup configuration" }
+                    appLogger.error { "action=signupToken result=failed no signup configuration" }
                     rc.response().setStatusCode(500).end()
                 }
             )
